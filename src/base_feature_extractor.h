@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/utils.h"
+#include "utils.h"
 
 namespace oh_loam {
 
@@ -32,7 +32,7 @@ class FeaturePointsExtractor {
   int num_scans() const { return num_scans_; }
 
  protected:
-  virtual GetScanID(const Point& pt) const = 0;
+  virtual int GetScanID(const Point& pt) const = 0;
 
   void SplitScan(const PointCloud& cloud,
                  std::vector<IPointCloud>* const scans) const;

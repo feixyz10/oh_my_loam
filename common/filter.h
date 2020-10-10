@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/utils.h"
+#include "utils.h"
 
 namespace oh_loam {
 
@@ -20,22 +20,22 @@ void RemovePointsIf(const pcl::PointCloud<PointT>& cloud_in,
   }
   cloud_out->points.resize(j);
   cloud_out->height = 1;
-  cloud_out->widht = static_cast<uint32_t>(j);
+  cloud_out->width = static_cast<uint32_t>(j);
   cloud_out->is_dense = true;
 }
 
 template <typename PointT>
 void RemoveNaNPoint(const pcl::PointCloud<PointT>& cloud_in,
                     pcl::PointCloud<PointT>* const cloud_out) {
-  RemovePointsIf(cloud_in, cloud_out,
-                 [](const PointT& pt) { return !IsFinite(pt); });
+  RemovePointsIf<PointT>(cloud_in, cloud_out,
+                         [](const PointT& pt) { return !IsFinite(pt); });
 }
 
 template <typename PointT>
 void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
                         pcl::PointCloud<PointT>* const cloud_out,
                         double min_dist = 0.1) {
-  RemovePointsIf(cloud_in, cloud_out, [](const PointT& pt) {
+  RemovePointsIf<PointT>(cloud_in, cloud_out, [&](const PointT& pt) {
     return DistanceSqure(pt) < min_dist * min_dist;
   });
 }

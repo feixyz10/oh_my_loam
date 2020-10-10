@@ -1,5 +1,6 @@
 #pragma once
 
+#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <cmath>
 
@@ -16,13 +17,13 @@ enum class PointType {
   NORNAL = 0,
   LESS_SHARP = 1,
   SHARP = 2,
-}
+};
 
 struct EIGEN_ALIGN16 PointXYZTCT {
   PCL_ADD_POINT4D;
   float time = 0.0f;
   float curvature = NAN;
-  char type = PointType::NORNAL;
+  PointType type = PointType::NORNAL;
 
   PointXYZTCT() {
     x = y = z = 0.0f;
@@ -55,7 +56,7 @@ struct EIGEN_ALIGN16 PointXYZTCT {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-using IPoint = pcl::PointXYZTCT;
+using IPoint = PointXYZTCT;
 using IPointCloud = pcl::PointCloud<IPoint>;
 using IPointCloudPtr = IPointCloud::Ptr;
 using IPointCloudConstPtr = IPointCloud::ConstPtr;

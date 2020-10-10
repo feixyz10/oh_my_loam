@@ -1,7 +1,7 @@
-#include "src/base_feature_extractor.h"
+#include "base_feature_extractor.h"
 
 #include <cmath>
-#include "common/filter.h"
+#include "filter.h"
 
 namespace oh_loam {
 
@@ -14,26 +14,26 @@ bool FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
   RemoveNaNPoint<Point>(cloud_in, cloud.get());
   RemoveClosedPoints<Point>(*cloud, cloud.get(), kPointMinDist);
   std::vector<IPointCloud> scans;
-  ScanSplit(*cloud, &scans);
-  for (auto& scan : sccans) {
-    ComputeCurvature(&scan);
-    AssignType(&scan);
+  SplitScan(*cloud, &scans);
+  for (auto& scan : scans) {
+    ComputePointCurvature(&scan);
+    AssignPointType(&scan);
   }
-  for (const auto& scan : sccans) {
+  for (const auto& scan : scans) {
     *(feature->laser_cloud) += scan;
     for (const auto& pt : scan.points) {
       switch (pt.type) {
         case PointType::FLAT:
-          feature->flat_surf_points.emplace_back(pt);
+          feature->flat_surf_points->points.emplace_back(pt);
           break;
         case PointType::LESS_FLAT:
-          feature->less_flat_surf_points.emplace_back(pt);
+          feature->less_flat_surf_points->points.emplace_back(pt);
           break;
         case PointType::LESS_SHARP:
-          feature->less_sharp_corner_points.emplace_back(pt);
+          feature->less_sharp_corner_points->points.emplace_back(pt);
           break;
         case PointType::SHARP:
-          feature->sharp_corner_points.emplace_back(pt);
+          feature->sharp_corner_points->points.emplace_back(pt);
           break;
         default:
           break;
@@ -44,8 +44,9 @@ bool FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
 
 void FeaturePointsExtractor::SplitScan(
     const PointCloud& cloud, std::vector<IPointCloud>* const scans) const {
-  scans.resize(num_scans_);
-  const auto & [ yaw_start, yaw_end ] = GetYawRange(cloud);
+  scans->resize(num_scans_);
+  double yaw_start, yaw_end;
+  std::tie(yaw_start, yaw_end) = GetYawRange(cloud);
   const double yaw_range = yaw_end - yaw_start;
   bool half_passed = false;
   for (const auto& pt : cloud.points) {
@@ -59,14 +60,15 @@ void FeaturePointsExtractor::SplitScan(
       half_passed = true;
       yaw_start += 2 * M_PI;
     }
-    scans[scan_id].emplace_back(pt.x, pt.y, pt.z, yaw_diff / yaw_range);
+    (*scans)[scan_id].points.emplace_back(pt.x, pt.y, pt.z,
+                                          yaw_diff / yaw_range);
   }
 }
 
 void FeaturePointsExtractor::ComputePointCurvature(
     IPointCloud* const scan) const {
   auto& pts = scan->points;
-  for (int i = 5; i < pts.size() - 5; ++i) {
+  for (size_t i = 5; i < pts.size() - 5; ++i) {
     float diffX = pts[i - 5].x + pts[i - 4].x + pts[i - 3].x + pts[i - 2].x +
                   pts[i - 1].x + pts[i + 1].x + pts[i + 2].x + pts[i + 3].x +
                   pts[i + 4].x + pts[i + 5].x - 10 * pts[i].x;

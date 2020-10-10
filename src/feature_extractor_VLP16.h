@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/utils.h"
-#include "src/base_feature_extractor.h"
+#include "base_feature_extractor.h"
+#include "utils.h"
 
 namespace oh_loam {
 

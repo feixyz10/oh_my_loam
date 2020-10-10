@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/types.h"
+#include "types.h"
 
 namespace oh_loam {
 
@@ -28,7 +28,7 @@ inline double NormalizeAngle(double ang) {
 std::pair<double, double> GetYawRange(const PointCloud& cloud) {
   const auto& pts = cloud.points;
   int pt_num = pts.size();
-  double yaw_start = -atan2(pts[0].y, pt[0].x);
+  double yaw_start = -atan2(pts[0].y, pts[0].x);
   double yaw_end = -atan2(pts[pt_num - 1].y, pts[pt_num - 1].x) + 2 * M_PI;
   double yaw_diff = NormalizeAngle(yaw_end - yaw_start);
   return {yaw_start, yaw_start + yaw_diff + 2 * M_PI};
