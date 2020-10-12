@@ -2,16 +2,16 @@
 
 #include "types.h"
 
-namespace oh_loam {
-
-template <typename PointT>
-inline double Distance(const PointT& pt) {
-  return std::hypot(pt.x, pt.y, pt.z);
-}
+namespace oh_my_loam {
 
 template <typename PointT>
 inline double DistanceSqure(const PointT& pt) {
   return pt.x * pt.x + pt.y * pt.y + pt.z * pt.z;
+}
+
+template <typename PointT>
+inline double Distance(const PointT& pt) {
+  return std::sqrt(pt.x * pt.x + pt.y * pt.y + pt.z * pt.z);
 }
 
 template <typename PointT>
@@ -25,13 +25,25 @@ inline double NormalizeAngle(double ang) {
   return ang - two_pi * std::floor((ang + M_PI) / two_pi);
 }
 
-std::pair<double, double> GetYawRange(const PointCloud& cloud) {
-  const auto& pts = cloud.points;
-  int pt_num = pts.size();
-  double yaw_start = -atan2(pts[0].y, pts[0].x);
-  double yaw_end = -atan2(pts[pt_num - 1].y, pts[pt_num - 1].x) + 2 * M_PI;
-  double yaw_diff = NormalizeAngle(yaw_end - yaw_start);
-  return {yaw_start, yaw_start + yaw_diff + 2 * M_PI};
+template <typename PointT>
+void DrawPointCloud(const pcl::PointCloud<PointT>& cloud, const Color& color,
+                    const std::string& id, PCLVisualizer* const viewer,
+                    int pt_size = 3) {
+  PCLColorHandlerCustom<PointT> color_handler(cloud.makeShared(), color.r,
+                                              color.g, color.b);
+  viewer->addPointCloud<PointT>(cloud.makeShared(), color_handler, id);
+  viewer->setPointCloudRenderingProperties(
+      pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
 }
 
-}  // oh_loam
+template <typename PointT>
+void DrawPointCloud(const pcl::PointCloud<PointT>& cloud,
+                    const std::string& field, const std::string& id,
+                    PCLVisualizer* const viewer, int pt_size = 3) {
+  PCLColorHandlerGenericField<PointT> color_handler(cloud.makeShared(), field);
+  viewer->addPointCloud<PointT>(cloud.makeShared(), color_handler, id);
+  viewer->setPointCloudRenderingProperties(
+      pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
+}
+
+}  // oh_my_loam

@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-namespace oh_loam {
+namespace oh_my_loam {
 
 template <typename PointT>
 void RemovePointsIf(const pcl::PointCloud<PointT>& cloud_in,
@@ -10,14 +10,15 @@ void RemovePointsIf(const pcl::PointCloud<PointT>& cloud_in,
                     std::function<bool(const PointT&)> cond) {
   if (&cloud_in != cloud_out) {
     cloud_out->header = cloud_in.header;
-    cloud_out->points.resize(cloud_in.points.size());
+    cloud_out->points.resize(cloud_in.size());
   }
   size_t j = 0;
-  for (size_t i = 0; i < cloud_in.points.size(); ++i) {
+  for (size_t i = 0; i < cloud_in.size(); ++i) {
     const auto pt = cloud_in.points[i];
     if (cond(pt)) continue;
     cloud_out->points[j++] = pt;
   }
+
   cloud_out->points.resize(j);
   cloud_out->height = 1;
   cloud_out->width = static_cast<uint32_t>(j);
@@ -40,4 +41,4 @@ void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
   });
 }
 
-}  // oh_loam
+}  // oh_my_loam

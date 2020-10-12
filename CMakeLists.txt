@@ -1,23 +1,47 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(oh_loam)
+project(oh_my_loam)
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++17")
+set(CMAKE_CXX_FLAGS "-std=c++17  -lpthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
-find_package(PCL QUIET)
-if (NOT PCL_FOUND) 
-  message(FATAL_ERROR "PCL not found.")
-endif()
+find_package(Ceres REQUIRED)
+find_package(PCL REQUIRED)
 
-include_directories(
-  ${PROJECT_SOURCE_DIR}/common
-  ${PROJECT_SOURCE_DIR}/src
-  ${PCL_INCLUDE_DIRS}
+find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
+  nav_msgs
+  sensor_msgs
+  roscpp
+  rospy
+  rosbag
+  std_msgs
+  image_transport
+  cv_bridge
+  tf
 )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+include_directories(
+	${catkin_INCLUDE_DIRS} 
+  ${PCL_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS}
+  src
+  common
+)
 
-add_library(${PROJECT_NAME} SHARED
-  ${PROJECT_SOURCE_DIR}/src/base_feature_extractor.cc
+catkin_package(
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs
+  DEPENDS EIGEN3 PCL 
+  INCLUDE_DIRS src common
+)
+
+add_subdirectory(common)
+add_subdirectory(src)
+
+add_executable(oh_my_loam main.cc)
+target_link_libraries(oh_my_loam
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+  ${CERES_LIBRARIES}
+  OhMyLoam
 )

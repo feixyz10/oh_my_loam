@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 
-namespace oh_loam {
+namespace oh_my_loam {
 
 class TicToc {
  public:
@@ -22,4 +22,4 @@ class TicToc {
   std::chrono::time_point<std::chrono::system_clock> start_, end_;
 };
 
-}  // oh_loam
+}  // oh_my_loam
