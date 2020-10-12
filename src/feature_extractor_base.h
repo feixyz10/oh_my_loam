@@ -36,4 +36,4 @@ class FeaturePointsExtractor {
   int num_scans_ = 0;
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

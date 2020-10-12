@@ -26,35 +26,34 @@ class FeaturePointsVisualizer : public Visualizer<FeaturePointsVisFrame> {
     }
     {  // add all feature_pts
       std::string id = "feature_pts";
-      DrawPointCloud<IPoint>(frame.feature_pts->feature_pts, GRAY, id,
+      DrawPointCloud<IPoint>(frame.feature_pts->feature_pts, "time", id,
                              viewer_.get());
       rendered_cloud_ids_.push_back(id);
     }
-    // {  // add flat_surf_pts
-    //   std::string id = "flat_surf_pts";
-    //   DrawPointCloud(*frame.feature_ptsflat_surf_pts, CYAN, id,
-    //   viewer_.get());
-    //   rendered_cloud_ids_.push_back(id);
-    // }
-    // {  // add less_flat_surf_pts
-    //   std::string id = "less_flat_surf_pts";
-    //   DrawPointCloud(*frame.feature_ptsless_flat_surf_pts, GREEN, id,
-    //   viewer_.get());
-    //   rendered_cloud_ids_.push_back(id);
-    // }
-    // {  // add less_sharp_corner_pts
-    //   std::string id = "less_sharp_corner_pts";
-    //   DrawPointCloud(*frame.feature_ptsless_sharp_corner_pts, ORANGE, id,
-    //   viewer_.get());
-    //   rendered_cloud_ids_.push_back(id);
-    // }
-    // {  // add sharp_corner_pts
-    //   std::string id = "sharp_corner_pts";
-    //   DrawPointCloud(*frame.feature_pts.sharp_corner_pts, ORANGE, id,
-    //   viewer_.get());
-    //   rendered_cloud_ids_.push_back(id);
-    // }
+    {  // add flat_surf_pts
+      std::string id = "flat_surf_pts";
+      DrawPointCloud(frame.feature_pts->flat_surf_pts, CYAN, id, viewer_.get());
+      rendered_cloud_ids_.push_back(id);
+    }
+    {  // add less_flat_surf_pts
+      std::string id = "less_flat_surf_pts";
+      DrawPointCloud(frame.feature_pts->less_flat_surf_pts, GREEN, id,
+                     viewer_.get());
+      rendered_cloud_ids_.push_back(id);
+    }
+    {  // add less_sharp_corner_pts
+      std::string id = "less_sharp_corner_pts";
+      DrawPointCloud(frame.feature_pts->less_sharp_corner_pts, ORANGE, id,
+                     viewer_.get());
+      rendered_cloud_ids_.push_back(id);
+    }
+    {  // add sharp_corner_pts
+      std::string id = "sharp_corner_pts";
+      DrawPointCloud(frame.feature_pts->sharp_corner_pts, ORANGE, id,
+                     viewer_.get());
+      rendered_cloud_ids_.push_back(id);
+    }
   }
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

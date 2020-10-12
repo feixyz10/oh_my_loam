@@ -1,19 +1,20 @@
 #include "feature_extractor_base.h"
 
 #include <cmath>
+
 #include "filter.h"
 
 namespace oh_my_loam {
 
 const double kPointMinDist = 0.1;
 const int kScanSegNum = 6;
-const double kTwoPi = kTwoPi;
+const double kTwoPi = 2 * M_PI;
 const int kMinPtsNum = 100;
 
 void FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
                                      FeaturePoints* const feature) const {
   PointCloudPtr cloud(new PointCloud);
-  std::cout << "BEFORE REMOVE, num = " << cloud->size() << std::endl;
+  std::cout << "BEFORE REMOVE, num = " << cloud_in.size() << std::endl;
   RemoveNaNPoint<Point>(cloud_in, cloud.get());
   RemoveClosedPoints<Point>(*cloud, cloud.get(), kPointMinDist);
   std::cout << "AFTER REMOVE, num = " << cloud->size() << std::endl;
@@ -30,24 +31,24 @@ void FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
   std::cout << std::endl;
   for (const auto& scan : scans) {
     feature->feature_pts += scan;
-    // for (const auto& pt : scan.points) {
-    //   switch (pt.type) {
-    //     case PointType::FLAT:
-    //       feature->flat_surf_pts->points.emplace_back(pt);
-    //       break;
-    //     case PointType::LESS_FLAT:
-    //       feature->less_flat_surf_pts->points.emplace_back(pt);
-    //       break;
-    //     case PointType::LESS_SHARP:
-    //       feature->less_sharp_corner_pts->points.emplace_back(pt);
-    //       break;
-    //     case PointType::SHARP:
-    //       feature->sharp_corner_pts->points.emplace_back(pt);
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    // }
+    for (const auto& pt : scan.points) {
+      switch (pt.Type()) {
+        case PointType::FLAT:
+          feature->flat_surf_pts.points.emplace_back(pt);
+          break;
+        case PointType::LESS_FLAT:
+          feature->less_flat_surf_pts.points.emplace_back(pt);
+          break;
+        case PointType::LESS_SHARP:
+          feature->less_sharp_corner_pts.points.emplace_back(pt);
+          break;
+        case PointType::SHARP:
+          feature->sharp_corner_pts.points.emplace_back(pt);
+          break;
+        default:
+          break;
+      }
+    }
   }
 }
 
@@ -98,4 +99,4 @@ void FeaturePointsExtractor::SplitScan(
 //   }
 // }
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

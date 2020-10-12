@@ -1,7 +1,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+
 #include <functional>
+
 #include "oh_my_loam.h"
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,

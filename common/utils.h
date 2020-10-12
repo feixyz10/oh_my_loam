@@ -46,4 +46,4 @@ void DrawPointCloud(const pcl::PointCloud<PointT>& cloud,
       pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
 }
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

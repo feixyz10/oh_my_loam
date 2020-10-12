@@ -4,7 +4,12 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/point_cloud_handlers.h>
+
 #include <cmath>
+// This hpp file should be included if user-defined point type is added, see
+// "How are the point types exposed?" section in
+// https://pointclouds.org/documentation/tutorials/adding_custom_ptype.html
+#include <pcl/visualization/impl/point_cloud_geometry_handlers.hpp>
 
 namespace oh_my_loam {
 
@@ -47,11 +52,11 @@ using PCLVisualizer = pcl::visualization::PCLVisualizer;
 #define PCLColorHandlerGenericField \
   pcl::visualization::PointCloudColorHandlerGenericField
 
-struct EIGEN_ALIGN16 PointXYZTCT {
+struct PointXYZTCT {
   PCL_ADD_POINT4D;
   float time = 0.0f;
   float curvature = std::nanf("");
-  // PointType label = PointType::NORNAL;
+  int8_t type = 0;  // -2, -1, 0, 1, or 2
 
   PointXYZTCT() {
     x = y = z = 0.0f;
@@ -59,8 +64,8 @@ struct EIGEN_ALIGN16 PointXYZTCT {
   }
 
   PointXYZTCT(float x, float y, float z, float time = 0.0f,
-              float curvature = NAN)
-      : x(x), y(y), z(z), time(time), curvature(curvature) {
+              float curvature = NAN, int8_t type = 0)
+      : x(x), y(y), z(z), time(time), curvature(curvature), type(type) {
     data[3] = 1.0f;
   }
 
@@ -77,19 +82,25 @@ struct EIGEN_ALIGN16 PointXYZTCT {
     z = p.z;
     time = p.time;
     curvature = p.curvature;
-    // type = p.type;
+    type = p.type;
     data[3] = 1.0f;
   }
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
+  PointType Type() const { return static_cast<PointType>(type); }
 
-}  // oh_my_loam
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+
+}  // namespace oh_my_loam
 
 // clang-format off
 POINT_CLOUD_REGISTER_POINT_STRUCT(
   oh_my_loam::PointXYZTCT,
-  (float, x, x)(float, y, y)(float, z, z)
-    (float, time, time)(float, curvature, curvatur)
+  (float, x, x)
+  (float, y, y)
+  (float, z, z)
+  (float, time, time)
+  (float, curvature, curvatur)
+  (int8_t, type, type)
 )
 // clang-format on

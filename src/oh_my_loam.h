@@ -26,4 +26,4 @@ class OhMyLoam {
   std::unique_ptr<FeaturePointsVisualizer> visualizer_ = nullptr;
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

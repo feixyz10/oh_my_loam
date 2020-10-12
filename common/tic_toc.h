@@ -22,4 +22,4 @@ class TicToc {
   std::chrono::time_point<std::chrono::system_clock> start_, end_;
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

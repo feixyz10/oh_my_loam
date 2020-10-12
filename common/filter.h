@@ -41,4 +41,4 @@ void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
   });
 }
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

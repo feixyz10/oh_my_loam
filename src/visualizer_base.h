@@ -2,11 +2,13 @@
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/point_cloud_handlers.h>
+
 #include <atomic>
 #include <deque>
 #include <mutex>
 #include <string>
 #include <thread>
+
 #include "types.h"
 
 namespace oh_my_loam {
@@ -160,4 +162,4 @@ class Visualizer {
   std::unique_ptr<PCLVisualizer> viewer_ = nullptr;
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam
