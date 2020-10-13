@@ -4,12 +4,15 @@
 
 #include <functional>
 
+#include "log.h"
 #include "oh_my_loam.h"
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        oh_my_loam::OhMyLoam* const slam);
 
 int main(int argc, char* argv[]) {
+  g3::InitG3Logging<true>("oh_my_loam", ".log");
+
   oh_my_loam::OhMyLoam slam;
   slam.Init();
 
@@ -27,7 +30,7 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        oh_my_loam::OhMyLoam* const slam) {
   oh_my_loam::PointCloud cloud;
   pcl::fromROSMsg(*msg, cloud);
-  ROS_INFO_STREAM("Point num = " << cloud.size()
-                                 << "ts = " << msg->header.stamp.toSec());
+  AINFO << "Point num = " << cloud.size()
+        << ", ts = " << msg->header.stamp.toSec();
   slam->Run(cloud, 0.0);
 }

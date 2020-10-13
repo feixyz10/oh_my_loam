@@ -9,7 +9,7 @@
 #include <string>
 #include <thread>
 
-#include "types.h"
+#include "common.h"
 
 namespace oh_my_loam {
 

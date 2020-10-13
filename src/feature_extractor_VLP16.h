@@ -1,7 +1,6 @@
 #pragma once
 
 #include "feature_extractor_base.h"
-#include "utils.h"
 
 namespace oh_my_loam {
 
@@ -14,12 +13,12 @@ class FeatureExtractorVLP16 : public FeaturePointsExtractor {
   int GetScanID(const Point& pt) const override final {
     static int i = 0;
     double omega = std::atan2(pt.z, Distance(pt)) * 180 * M_1_PI + 15.0;
-    if (i++ < 10)
-      std::cout << "OMEGA: "
-                << std::atan2(pt.z, Distance(pt)) * 180 * M_1_PI + 15.0
-                << " id = " << static_cast<int>(std::round(omega / 2.0) + 0.01)
-                << " z = " << pt.z << " "
-                << " d = " << Distance(pt) << std::endl;
+    if (i++ < 10) {
+      AWARN << "OMEGA: " << std::atan2(pt.z, Distance(pt)) * 180 * M_1_PI + 15.0
+            << " id = " << static_cast<int>(std::round(omega / 2.0) + 0.01)
+            << " z = " << pt.z << " "
+            << " d = " << Distance(pt) << std::endl;
+    }
     return static_cast<int>(std::round(omega / 2.0) + 1.e-5);
   }
 };

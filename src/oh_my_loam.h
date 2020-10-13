@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "feature_extractor_VLP16.h"
 #include "visualizer_feature_points.h"
 

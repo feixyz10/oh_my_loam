@@ -6,18 +6,20 @@
 
 namespace oh_my_loam {
 
+namespace {
 const double kPointMinDist = 0.1;
 const int kScanSegNum = 6;
 const double kTwoPi = 2 * M_PI;
 const int kMinPtsNum = 100;
+}  // namespace
 
 void FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
                                      FeaturePoints* const feature) const {
   PointCloudPtr cloud(new PointCloud);
-  std::cout << "BEFORE REMOVE, num = " << cloud_in.size() << std::endl;
+  AINFO << "BEFORE REMOVE, num = " << cloud_in.size();
   RemoveNaNPoint<Point>(cloud_in, cloud.get());
   RemoveClosedPoints<Point>(*cloud, cloud.get(), kPointMinDist);
-  std::cout << "AFTER REMOVE, num = " << cloud->size() << std::endl;
+  AINFO << "AFTER REMOVE, num = " << cloud->size();
   if (cloud->size() < kMinPtsNum) {
     return;
   }
