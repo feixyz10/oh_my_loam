@@ -1,0 +1,6 @@
+%YAML:1.0
+
+lidar: VPL16
+
+feature_points_extractor_config:
+  min_point_num: 10

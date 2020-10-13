@@ -2,8 +2,9 @@
 
 namespace oh_my_loam {
 
-bool OhMyLoam::Init() {
+bool OhMyLoam::Init(const YAML::Node& config) {
   is_vis_ = true;
+  config_ = config;
   feature_extractor_.reset(new FeatureExtractorVLP16);
   if (is_vis_) {
     visualizer_.reset(new FeaturePointsVisualizer);

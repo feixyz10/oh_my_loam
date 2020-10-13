@@ -1,5 +1,7 @@
 #pragma once
 
+#include <yaml-cpp/yaml.h>
+
 #include "common.h"
 #include "feature_extractor_VLP16.h"
 #include "visualizer_feature_points.h"
@@ -13,7 +15,7 @@ class OhMyLoam {
   OhMyLoam(const OhMyLoam&) = delete;
   OhMyLoam& operator=(const OhMyLoam&) = delete;
 
-  bool Init();
+  bool Init(const YAML::Node& config);
 
   void Run(const PointCloud& cloud, double timestamp);
 
@@ -25,6 +27,7 @@ class OhMyLoam {
   bool is_vis_ = false;
   std::unique_ptr<FeaturePointsExtractor> feature_extractor_ = nullptr;
   std::unique_ptr<FeaturePointsVisualizer> visualizer_ = nullptr;
+  YAML::Node config_;
 };
 
 }  // namespace oh_my_loam

@@ -1,6 +1,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <yaml-cpp/yaml.h>
 
 #include <functional>
 
@@ -11,11 +12,17 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        oh_my_loam::OhMyLoam* const slam);
 
 int main(int argc, char* argv[]) {
-  g3::InitG3Logging<true>("oh_my_loam", ".log");
+  // logging
+  g3::InitG3Logging<false>("oh_my_loam", ".log");
 
+  // configurations
+  YAML::Node config = YAML::LoadFile("./config/config.yaml");
+  AWARN << config["lidar"].as<std::string>();
+  // SLAM system
   oh_my_loam::OhMyLoam slam;
-  slam.Init();
+  slam.Init(config);
 
+  // ros
   ros::init(argc, argv, "oh_my_loam");
   ros::NodeHandle nh;
   ros::Subscriber sub_point_cloud = nh.subscribe<sensor_msgs::PointCloud2>(

@@ -6,8 +6,9 @@ set(CMAKE_CXX_FLAGS "-std=c++17  -lpthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
 find_package(Ceres REQUIRED)
-find_package(PCL REQUIRED)
+find_package(PCL QUIET)
 find_package(g3log REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
@@ -22,11 +23,14 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 
-include_directories(
+include_directories(SYSTEM
 	${catkin_INCLUDE_DIRS} 
   ${PCL_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${G3LOG_INCLUDE_DIRS}
+)
+
+include_directories(
   src
   common
 )
@@ -37,7 +41,6 @@ catkin_package(
   INCLUDE_DIRS src common
 )
 
-
 add_subdirectory(common)
 add_subdirectory(src)
 
@@ -46,7 +49,8 @@ target_link_libraries(oh_my_loam
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES}
   ${CERES_LIBRARIES}
-  ${G3LOG_INCLUDE_DIRS}
+  ${G3LOG_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
   g3log
   OhMyLoam
 )
