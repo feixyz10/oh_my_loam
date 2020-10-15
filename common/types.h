@@ -54,26 +54,34 @@ using PCLVisualizer = pcl::visualization::PCLVisualizer;
 
 struct PointXYZTCT {
   PCL_ADD_POINT4D;
-  float time = 0.0f;
-  float curvature = std::nanf("");
-  int8_t type = 0;  // -2, -1, 0, 1, or 2
+  union EIGEN_ALIGN16 {
+    float data_c[4];
+    struct {
+      float time;
+      float curvature;
+      int type;  // -2, -1, 0, 1, or 2
+    };
+  };
 
   PointXYZTCT() {
     x = y = z = 0.0f;
+    time = 0.0f;
+    curvature = std::nanf("");
+    type = 0;
     data[3] = 1.0f;
   }
 
   PointXYZTCT(float x, float y, float z, float time = 0.0f,
-              float curvature = NAN, int8_t type = 0)
-      : x(x), y(y), z(z), time(time), curvature(curvature), type(type) {
-    data[3] = 1.0f;
-  }
+              float curvature = std::nanf(""), int type = 0)
+      : x(x), y(y), z(z), time(time), curvature(curvature), type(type) {}
 
   PointXYZTCT(const Point& p) {
     x = p.x;
     y = p.y;
     z = p.z;
-    data[3] = 1.0f;
+    time = 0.0f;
+    curvature = std::nanf("");
+    type = 0;
   }
 
   PointXYZTCT(const PointXYZTCT& p) {
@@ -83,7 +91,6 @@ struct PointXYZTCT {
     time = p.time;
     curvature = p.curvature;
     type = p.type;
-    data[3] = 1.0f;
   }
 
   PointType Type() const { return static_cast<PointType>(type); }
@@ -100,7 +107,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(
   (float, y, y)
   (float, z, z)
   (float, time, time)
-  (float, curvature, curvatur)
+  (float, curvature, curvature)
   (int8_t, type, type)
 )
 // clang-format on

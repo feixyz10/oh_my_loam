@@ -20,21 +20,35 @@ class CustomSink {
  public:
   CustomSink() = default;
   explicit CustomSink(const std::string& log_file_name)
-      : log_file_name_(log_file_name), log_to_file_(true) {}
-  ~CustomSink() = default;
+      : log_file_name_(log_file_name), log_to_file_(true) {
+    ofs_.reset(new std::ofstream(log_file_name));
+  }
+  ~CustomSink() {
+    std::ostringstream oss;
+    oss << "\ng3log " << (log_to_file_ ? "FileSink" : "StdSink")
+        << " shutdown at: ";
+    auto now = std::chrono::system_clock::now();
+    oss << g3::localtime_formatted(now, "%Y%m%d %H:%M:%S.%f3");
+    if (log_to_file_ && ofs_ != nullptr) {
+      (*ofs_) << oss.str() << std::endl;
+    }
+    std::clog << oss.str() << std::endl;
+  };
 
   void StdLogMessage(g3::LogMessageMover logEntry) {
     std::clog << ColorFormatedMessage(logEntry.get()) << std::endl;
   }
 
   void FileLogMessage(g3::LogMessageMover logEntry) {
-    static std::ofstream ofs(log_file_name_);
-    ofs << FormatedMessage(logEntry.get()) << std::endl;
+    if (log_to_file_ && ofs_ != nullptr) {
+      (*ofs_) << FormatedMessage(logEntry.get()) << std::endl;
+    }
   }
 
  private:
   std::string log_file_name_;
-  bool log_to_file_ = false;
+  bool log_to_file_{false};
+  std::unique_ptr<std::ofstream> ofs_{nullptr};
 
   std::string FormatedMessage(const g3::LogMessage& msg) const {
     std::ostringstream oss;

@@ -19,6 +19,7 @@ class FeaturePointsExtractor {
   FeaturePointsExtractor(const FeaturePointsExtractor&) = delete;
   FeaturePointsExtractor& operator=(const FeaturePointsExtractor&) = delete;
 
+  bool Init(const YAML::Node& config);
   void Extract(const PointCloud& cloud_in, FeaturePoints* const feature) const;
 
   int num_scans() const { return num_scans_; }
@@ -29,11 +30,12 @@ class FeaturePointsExtractor {
   void SplitScan(const PointCloud& cloud,
                  std::vector<IPointCloud>* const scans) const;
 
-  // void ComputePointCurvature(IPointCloud* const scan) const;
+  void ComputePointCurvature(IPointCloud* const scan) const;
 
-  // void AssignPointType(IPointCloud* const scan) const;
+  void AssignPointType(IPointCloud* const scan) const;
 
   int num_scans_ = 0;
+  YAML::Node config_;
 };
 
 }  // namespace oh_my_loam

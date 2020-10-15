@@ -26,7 +26,7 @@ class FeaturePointsVisualizer : public Visualizer<FeaturePointsVisFrame> {
     }
     {  // add all feature_pts
       std::string id = "feature_pts";
-      DrawPointCloud<IPoint>(frame.feature_pts->feature_pts, "time", id,
+      DrawPointCloud<IPoint>(frame.feature_pts->feature_pts, "curvature", id,
                              viewer_.get());
       rendered_cloud_ids_.push_back(id);
     }
