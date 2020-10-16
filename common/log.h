@@ -1,17 +1,23 @@
 #pragma once
 
 #include <chrono>
+#include <fstream>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
+#include <iostream>
+
+const LEVELS ERROR{WARNING.value + 100, "ERROR"};
 
 #define ADEBUG LOG(DEBUG) << "[DEBUG] "
 #define AINFO LOG(INFO)
 #define AWARN LOG(WARNING)
+#define AERROR LOG(ERROR)
 #define AFATAL LOG(FATAL)
 
 // LOG_IF
 #define AINFO_IF(cond) LOG_IF(INFO, cond)
 #define AWARN_IF(cond) LOG_IF(WARNING, cond)
+#define AERROR_IF(cond) LOG_IF(ERROR, cond)
 #define AFATAL_IF(cond) LOG_IF(FATAL, cond)
 #define ACHECK(cond) CHECK(cond)
 
@@ -19,10 +25,12 @@ namespace g3 {
 class CustomSink {
  public:
   CustomSink() = default;
+
   explicit CustomSink(const std::string& log_file_name)
       : log_file_name_(log_file_name), log_to_file_(true) {
     ofs_.reset(new std::ofstream(log_file_name));
   }
+
   ~CustomSink() {
     std::ostringstream oss;
     oss << "\ng3log " << (log_to_file_ ? "FileSink" : "StdSink")
@@ -71,6 +79,9 @@ class CustomSink {
     if (level.value == DEBUG.value) {
       return 32;  // green
     }
+    if (level.value == ERROR.value) {
+      return 31;  // red
+    }
     if (g3::internal::wasFatal(level)) {
       return 31;  // red
     }
@@ -78,25 +89,7 @@ class CustomSink {
   }
 };
 
-template <bool LogToFile>
-void InitG3Logging(const std::string& prefix, const std::string& path) {
-  static std::unique_ptr<g3::LogWorker> worker;
-  if (worker != nullptr) return;
-  worker = std::move(g3::LogWorker::createLogWorker());
-  worker->addSink(std::make_unique<g3::CustomSink>(),
-                  &g3::CustomSink::StdLogMessage);
-  if (LogToFile) {
-    std::ostringstream oss;
-    oss << path;
-    if (*path.rbegin() != '/') oss << '/';
-    oss << prefix << ".";
-    auto now = std::chrono::system_clock::now();
-    oss << g3::localtime_formatted(now, "%Y%m%d-%H%M%S");
-    oss << ".log";
-    worker->addSink(std::make_unique<g3::CustomSink>(oss.str()),
-                    &g3::CustomSink::FileLogMessage);
-  }
-  g3::initializeLogging(worker.get());
-}
+void InitG3Logging(bool log_to_file = false, const std::string& prefix = "",
+                   const std::string& path = "./");
 
 }  // namespace g3

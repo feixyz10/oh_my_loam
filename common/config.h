@@ -5,9 +5,9 @@
 #include <string>
 
 #include "log.h"
-#include "micros.h"
+#include "macros.h"
 
-namespace oh_my_slam {
+namespace oh_my_loam {
 
 class Config {
  public:
@@ -17,7 +17,7 @@ class Config {
   }
 
   template <typename T>
-  const T& Get(const std::string& key) const {
+  const T Get(const std::string& key) const {
     AFATAL_IF(!config_) << "No config exists: please call SetConfigFile.";
     return (*config_)[key].as<T>();
   }
@@ -30,7 +30,7 @@ class Config {
  private:
   std::shared_ptr<YAML::Node> config_{nullptr};
 
-  DECLARE_SINGLETON(Config);
+  DECLARE_SINGLETON(Config)
 };
 
-}  // namespace oh_my_slam
+}  // namespace oh_my_loam

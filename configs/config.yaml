@@ -1,0 +1,10 @@
+# global configs
+lidar: VPL16
+log_to_file: true
+log_path: /home/liufei/catkin_ws/src/oh_my_loam/.log
+vis: false
+
+# configs for feature points extractor
+feature_extractor_config:
+  min_scan_point_num: 66
+  vis: true

@@ -1,0 +1,43 @@
+#include "feature_points_visualizer.h"
+
+namespace oh_my_loam {
+
+void FeaturePointsVisualizer::Draw() {
+  auto frame = GetCurrentFrame();
+  {  // add raw point cloud
+    std::string id = "raw point cloud";
+    DrawPointCloud<Point>(*frame.cloud, WHITE, id, viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+  {  // add all feature_pts
+    std::string id = "feature_pts";
+    DrawPointCloud(*frame.feature_pts.feature_pts, "curvature", id,
+                   viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+  {  // add flat_surf_pts
+    std::string id = "flat_surf_pts";
+    DrawPointCloud(*frame.feature_pts.flat_surf_pts, CYAN, id, viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+  {  // add less_flat_surf_pts
+    std::string id = "less_flat_surf_pts";
+    DrawPointCloud(*frame.feature_pts.less_flat_surf_pts, GREEN, id,
+                   viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+  {  // add less_sharp_corner_pts
+    std::string id = "less_sharp_corner_pts";
+    DrawPointCloud(*frame.feature_pts.less_sharp_corner_pts, ORANGE, id,
+                   viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+  {  // add sharp_corner_pts
+    std::string id = "sharp_corner_pts";
+    DrawPointCloud(*frame.feature_pts.sharp_corner_pts, ORANGE, id,
+                   viewer_.get());
+    rendered_cloud_ids_.push_back(id);
+  }
+};
+
+}  // namespace oh_my_loam

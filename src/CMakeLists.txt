@@ -1,7 +1,7 @@
-include_directories(
-  ${PROJECT_SOURCE_DIR}/common
-)
+add_subdirectory(feature_points_extractor)
+add_subdirectory(visualizer)
 
 aux_source_directory(. SRC_FILES)
 
-add_library(OhMyLoam SHARED ${SRC_FILES})
+add_library(oh_my_loam SHARED ${SRC_FILES})
+

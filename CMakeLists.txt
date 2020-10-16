@@ -44,13 +44,16 @@ catkin_package(
 add_subdirectory(common)
 add_subdirectory(src)
 
-add_executable(oh_my_loam main.cc)
-target_link_libraries(oh_my_loam
+add_executable(main main.cc)
+target_link_libraries(main
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES}
   ${CERES_LIBRARIES}
   ${G3LOG_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   g3log
-  OhMyLoam
+  common
+  oh_my_loam
+  feature_points_extractor
+  visualizer
 )

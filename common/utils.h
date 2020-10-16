@@ -20,10 +20,7 @@ inline double IsFinite(const PointT& pt) {
 }
 
 // normalize an angle to [-pi, pi)
-inline double NormalizeAngle(double ang) {
-  const double& two_pi = 2 * M_PI;
-  return ang - two_pi * std::floor((ang + M_PI) / two_pi);
-}
+double NormalizeAngle(double ang);
 
 template <typename PointT>
 void DrawPointCloud(const pcl::PointCloud<PointT>& cloud, const Color& color,
@@ -44,6 +41,43 @@ void DrawPointCloud(const pcl::PointCloud<PointT>& cloud,
   viewer->addPointCloud<PointT>(cloud.makeShared(), color_handler, id);
   viewer->setPointCloudRenderingProperties(
       pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
+}
+
+template <typename PointT>
+void RemovePointsIf(const pcl::PointCloud<PointT>& cloud_in,
+                    pcl::PointCloud<PointT>* const cloud_out,
+                    std::function<bool(const PointT&)> cond) {
+  if (&cloud_in != cloud_out) {
+    cloud_out->header = cloud_in.header;
+    cloud_out->points.resize(cloud_in.size());
+  }
+  size_t j = 0;
+  for (size_t i = 0; i < cloud_in.size(); ++i) {
+    const auto pt = cloud_in.points[i];
+    if (cond(pt)) continue;
+    cloud_out->points[j++] = pt;
+  }
+
+  cloud_out->points.resize(j);
+  cloud_out->height = 1;
+  cloud_out->width = static_cast<uint32_t>(j);
+  cloud_out->is_dense = true;
+}
+
+template <typename PointT>
+void RemoveNaNPoint(const pcl::PointCloud<PointT>& cloud_in,
+                    pcl::PointCloud<PointT>* const cloud_out) {
+  RemovePointsIf<PointT>(cloud_in, cloud_out,
+                         [](const PointT& pt) { return !IsFinite(pt); });
+}
+
+template <typename PointT>
+void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
+                        pcl::PointCloud<PointT>* const cloud_out,
+                        double min_dist = 0.1) {
+  RemovePointsIf<PointT>(cloud_in, cloud_out, [&](const PointT& pt) {
+    return DistanceSqure(pt) < min_dist * min_dist;
+  });
 }
 
 }  // namespace oh_my_loam

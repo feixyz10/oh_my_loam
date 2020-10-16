@@ -1,27 +1,38 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <yaml-cpp/yaml.h>
 
 #include <functional>
 
-#include "log.h"
-#include "oh_my_loam.h"
+#include "common/common.h"
+#include "src/oh_my_loam.h"
+
+using namespace oh_my_loam;
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
-                       oh_my_loam::OhMyLoam* const slam);
+                       OhMyLoam* const slam);
 
 int main(int argc, char* argv[]) {
-  // configurations
-  YAML::Node config = YAML::LoadFile("./config/config.yaml");
+  // config
+  Config::Instance()->SetConfigFile("configs/config.yaml");
+  bool log_to_file = Config::Instance()->Get<bool>("log_to_file");
+  std::string log_path = Config::Instance()->Get<std::string>("log_path");
+  std::string lidar = Config::Instance()->Get<std::string>("lidar");
 
   // logging
-  g3::InitG3Logging<true>("oh_my_loam", ".log");
-  AWARN << config["lidar"].as<std::string>();
+  g3::InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
+  AINFO << "Lidar: " << lidar;
 
   // SLAM system
-  oh_my_loam::OhMyLoam slam;
-  slam.Init(config["feature_points_extractor_config"]);
+  OhMyLoam slam;
+  if (!slam.Init()) {
+    AFATAL << "Failed to initilize slam system.";
+  }
+  ADEBUG << "DEBUG";
+  AINFO << "INFO";
+  AWARN << "WARN";
+  AERROR << "ERROR";
+  AFATAL << "FATAL";
 
   // ros
   ros::init(argc, argv, "oh_my_loam");
@@ -35,8 +46,8 @@ int main(int argc, char* argv[]) {
 }
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
-                       oh_my_loam::OhMyLoam* const slam) {
-  oh_my_loam::PointCloud cloud;
+                       OhMyLoam* const slam) {
+  PointCloud cloud;
   pcl::fromROSMsg(*msg, cloud);
   AINFO << "Point num = " << cloud.size()
         << ", ts = " << msg->header.stamp.toSec();
