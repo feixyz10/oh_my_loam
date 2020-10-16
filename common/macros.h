@@ -1,7 +1,13 @@
 #pragma once
 
+#include <iomanip>
 #include <memory>
 #include <mutex>
+
+// #define LOG_TIMESTAMP(timestamp, precision)
+//   std::fixed << std::precision(precision) << timestamp;
+#define LOG_TIMESTAMP(timestamp) \
+  std::fixed << std::setprecision(3) << timestamp;
 
 #define DISALLOW_COPY_AND_ASSIGN(classname) \
   classname(const classname &) = delete;    \

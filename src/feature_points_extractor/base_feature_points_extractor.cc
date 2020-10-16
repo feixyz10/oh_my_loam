@@ -14,7 +14,7 @@ const int kMinPtsNum = 100;
 bool FeaturePointsExtractor::Init(const YAML::Node& config) {
   config_ = config;
   is_vis_ = Config::Instance()->Get<bool>("vis") && config_["vis"].as<bool>();
-  AINFO << "Feature points visualization: " << (is_vis_ ? "ON" : "OFF");
+  AINFO << "Feature points extraction visualizer: " << (is_vis_ ? "ON" : "OFF");
   if (is_vis_) visualizer_.reset(new FeaturePointsVisualizer);
   return true;
 }
@@ -22,10 +22,9 @@ bool FeaturePointsExtractor::Init(const YAML::Node& config) {
 void FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
                                      FeaturePoints* const feature) {
   PointCloudPtr cloud(new PointCloud);
-  AINFO << "BEFORE REMOVE, num = " << cloud_in.size();
   RemoveNaNPoint<Point>(cloud_in, cloud.get());
   RemoveClosedPoints<Point>(*cloud, cloud.get(), kPointMinDist);
-  AINFO << "AFTER REMOVE, num = " << cloud->size();
+  ADEBUG << "AFTER REMOVE, point num = " << cloud->size();
   if (cloud->size() < kMinPtsNum) {
     return;
   }
@@ -41,7 +40,7 @@ void FeaturePointsExtractor::Extract(const PointCloud& cloud_in,
     oss << scan.size() << " ";
     AssignPointType(&scan);
   }
-  AWARN << oss.str();
+  ADEBUG << oss.str();
   for (const auto& scan : scans) {
     *feature->feature_pts += scan;
     for (const auto& pt : scan.points) {

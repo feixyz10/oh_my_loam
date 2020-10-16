@@ -28,11 +28,6 @@ int main(int argc, char* argv[]) {
   if (!slam.Init()) {
     AFATAL << "Failed to initilize slam system.";
   }
-  ADEBUG << "DEBUG";
-  AINFO << "INFO";
-  AWARN << "WARN";
-  AERROR << "ERROR";
-  AFATAL << "FATAL";
 
   // ros
   ros::init(argc, argv, "oh_my_loam");
@@ -49,7 +44,7 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam) {
   PointCloud cloud;
   pcl::fromROSMsg(*msg, cloud);
-  AINFO << "Point num = " << cloud.size()
-        << ", ts = " << msg->header.stamp.toSec();
+  ADEBUG << "Point num = " << cloud.size()
+         << ", ts = " << LOG_TIMESTAMP(msg->header.stamp.toSec());
   slam->Run(cloud, 0.0);
 }
