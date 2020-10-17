@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 
   // logging
   g3::InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
-  AINFO << "Lidar: " << lidar;
+  AUSER << "LOAM start..., lidar = " << lidar;
 
   // SLAM system
   OhMyLoam slam;
@@ -44,7 +44,6 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam) {
   PointCloud cloud;
   pcl::fromROSMsg(*msg, cloud);
-  ADEBUG << "Point num = " << cloud.size()
-         << ", ts = " << LOG_TIMESTAMP(msg->header.stamp.toSec());
+  AINFO << "Timestamp = " << LOG_TIMESTAMP(msg->header.stamp.toSec());
   slam->Run(cloud, 0.0);
 }

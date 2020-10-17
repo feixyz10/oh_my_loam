@@ -54,6 +54,6 @@ target_link_libraries(main
   g3log
   common
   oh_my_loam
-  feature_points_extractor
+  extractor
   visualizer
 )

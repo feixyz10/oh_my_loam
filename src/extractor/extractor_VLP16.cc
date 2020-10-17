@@ -1,8 +1,8 @@
-#include "feature_points_extractor_VLP16.h"
+#include "extractor_VLP16.h"
 
 namespace oh_my_loam {
 
-int FeaturePointsExtractorVLP16::GetScanID(const Point& pt) const {
+int ExtractorVLP16::GetScanID(const Point& pt) const {
   static int i = 0;
   double omega = std::atan2(pt.z, Distance(pt)) * 180 * M_1_PI + 15.0;
   if (i++ < 10) {

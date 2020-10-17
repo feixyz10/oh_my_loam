@@ -3,7 +3,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "common.h"
-#include "feature_points_extractor/base_feature_points_extractor.h"
+#include "extractor/base_extractor.h"
 
 namespace oh_my_loam {
 
@@ -13,10 +13,14 @@ class OhMyLoam {
 
   bool Init();
 
-  void Run(const PointCloud& cloud, double timestamp);
+  void Run(const PointCloud& cloud_in, double timestamp);
 
  private:
-  std::unique_ptr<FeaturePointsExtractor> feature_extractor_{nullptr};
+  std::unique_ptr<Extractor> extractor_{nullptr};
+
+  // remove outliers: nan and very close points
+  void RemoveOutliers(const PointCloud& cloud_in,
+                      PointCloud* const cloud_out) const;
 
   DISALLOW_COPY_AND_ASSIGN(OhMyLoam)
 };

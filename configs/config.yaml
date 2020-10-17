@@ -1,10 +1,18 @@
 # global configs
 lidar: VPL16
-log_to_file: true
-log_path: /home/liufei/catkin_ws/src/oh_my_loam/.log
-vis: false
+log_to_file: false
+log_path: /home/lf/catkin_ws/src/oh_my_loam/.log
+vis: true
 
 # configs for feature points extractor
-feature_extractor_config:
-  min_scan_point_num: 66
+extractor_config:
+  min_point_num: 66
   vis: true
+  sharp_corner_point_num: 2
+  corner_point_num: 20
+  flat_surf_point_num: 4
+  surf_point_num: 1000
+  corner_point_curvature_thres: 0.5
+  surf_point_curvature_thres: 0.5
+  neighbor_point_dist_thres: 0.05
+  downsample_voxel_size: 0.2

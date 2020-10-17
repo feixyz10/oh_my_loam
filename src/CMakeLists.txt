@@ -1,4 +1,4 @@
-add_subdirectory(feature_points_extractor)
+add_subdirectory(extractor)
 add_subdirectory(visualizer)
 
 aux_source_directory(. SRC_FILES)

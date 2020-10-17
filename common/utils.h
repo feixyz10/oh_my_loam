@@ -1,5 +1,7 @@
 #pragma once
 
+#include "color.h"
+#include "log.h"
 #include "types.h"
 
 namespace oh_my_loam {
@@ -21,6 +23,10 @@ inline double IsFinite(const PointT& pt) {
 
 // normalize an angle to [-pi, pi)
 double NormalizeAngle(double ang);
+
+// like Python built-in range, [begin, end)
+const std::vector<int> Range(int begin, int end, int step = 1);
+const std::vector<int> Range(int end);  // [0, end)
 
 template <typename PointT>
 void DrawPointCloud(const pcl::PointCloud<PointT>& cloud, const Color& color,
@@ -78,6 +84,16 @@ void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
   RemovePointsIf<PointT>(cloud_in, cloud_out, [&](const PointT& pt) {
     return DistanceSqure(pt) < min_dist * min_dist;
   });
+}
+
+template <typename PointT>
+void VoxelDownSample(const pcl::PointCloud<PointT>& cloud_in,
+                     pcl::PointCloud<PointT>* const cloud_out,
+                     double voxel_size) {
+  pcl::VoxelGrid<PointT> filter;
+  filter.setInputCloud(cloud_in.makeShared());
+  filter.setLeafSize(voxel_size, voxel_size, voxel_size);
+  filter.filter(*cloud_out);
 }
 
 }  // namespace oh_my_loam

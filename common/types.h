@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>
@@ -26,20 +28,6 @@ enum class PointType {
   SHARP = 2,
 };
 
-struct Color {
-  uint8_t r, g, b;
-  Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
-};
-#define BLACK Color(0, 0, 0)
-#define WHITE Color(255, 255, 255)
-#define RED Color(255, 0, 0)
-#define GREEN Color(0, 255, 0)
-#define BLUE Color(0, 0, 255)
-#define GRAY Color(50, 50, 50)
-#define CYAN Color(0, 255, 255)
-#define PURPLE Color(160, 32, 240)
-#define ORANGE Color(255, 97, 0)
-
 struct PointXYZTCT;
 
 using IPoint = PointXYZTCT;
@@ -59,7 +47,7 @@ struct PointXYZTCT {
     struct {
       float time;
       float curvature;
-      int type;  // -2, -1, 0, 1, or 2
+      PointType type;
     };
   };
 
@@ -67,12 +55,12 @@ struct PointXYZTCT {
     x = y = z = 0.0f;
     time = 0.0f;
     curvature = std::nanf("");
-    type = 0;
-    data[3] = 1.0f;
+    type = PointType::NORNAL;
   }
 
   PointXYZTCT(float x, float y, float z, float time = 0.0f,
-              float curvature = std::nanf(""), int type = 0)
+              float curvature = std::nanf(""),
+              PointType type = PointType::NORNAL)
       : x(x), y(y), z(z), time(time), curvature(curvature), type(type) {}
 
   PointXYZTCT(const Point& p) {
@@ -81,7 +69,7 @@ struct PointXYZTCT {
     z = p.z;
     time = 0.0f;
     curvature = std::nanf("");
-    type = 0;
+    type = PointType::NORNAL;
   }
 
   PointXYZTCT(const PointXYZTCT& p) {
@@ -92,8 +80,6 @@ struct PointXYZTCT {
     curvature = p.curvature;
     type = p.type;
   }
-
-  PointType Type() const { return static_cast<PointType>(type); }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
@@ -108,6 +94,6 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(
   (float, z, z)
   (float, time, time)
   (float, curvature, curvature)
-  (int8_t, type, type)
+  // (int8_t, type, type)
 )
 // clang-format on

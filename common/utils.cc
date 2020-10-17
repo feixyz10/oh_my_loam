@@ -7,4 +7,16 @@ double NormalizeAngle(double ang) {
   return ang - two_pi * std::floor((ang + M_PI) / two_pi);
 }
 
-}  // oh_my_loam
+const std::vector<int> Range(int begin, int end, int step) {
+  ACHECK(step != 0) << "Step must non-zero";
+  int num = (end - begin) / step;
+  if (num <= 0) return {};
+  end = begin + step * num;
+  std::vector<int> seq(num);
+  for (int i = begin; i != end; i += step) seq[i] = i;
+  return seq;
+}
+
+const std::vector<int> Range(int end) { return Range(0, end, 1); }
+
+}  // namespace oh_my_loam

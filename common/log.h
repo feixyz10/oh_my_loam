@@ -7,17 +7,21 @@
 #include <iostream>
 
 const LEVELS ERROR{WARNING.value + 100, "ERROR"};
+const LEVELS USER(ERROR.value + 100, "USER");
 
-#define ADEBUG LOG(DEBUG) << "[DEBUG] "
+#define ADEBUG LOG(DEBUG)
 #define AINFO LOG(INFO)
 #define AWARN LOG(WARNING)
 #define AERROR LOG(ERROR)
+#define AUSER LOG(USER)
 #define AFATAL LOG(FATAL)
 
 // LOG_IF
+#define ADEBUG_IF(cond) LOG_IF(DEBUG, cond)
 #define AINFO_IF(cond) LOG_IF(INFO, cond)
 #define AWARN_IF(cond) LOG_IF(WARNING, cond)
 #define AERROR_IF(cond) LOG_IF(ERROR, cond)
+#define AUSER_IF(cond) LOG_IF(USER, cond)
 #define AFATAL_IF(cond) LOG_IF(FATAL, cond)
 #define ACHECK(cond) CHECK(cond)
 
@@ -37,10 +41,11 @@ class CustomSink {
         << " shutdown at: ";
     auto now = std::chrono::system_clock::now();
     oss << g3::localtime_formatted(now, "%Y%m%d %H:%M:%S.%f3");
-    if (log_to_file_ && ofs_ != nullptr) {
+    if (log_to_file_) {
       (*ofs_) << oss.str() << std::endl;
+    } else {
+      std::clog << oss.str() << std::endl;
     }
-    std::clog << oss.str() << std::endl;
   };
 
   void StdLogMessage(g3::LogMessageMover logEntry) {
@@ -48,7 +53,7 @@ class CustomSink {
   }
 
   void FileLogMessage(g3::LogMessageMover logEntry) {
-    if (log_to_file_ && ofs_ != nullptr) {
+    if (log_to_file_) {
       (*ofs_) << FormatedMessage(logEntry.get()) << std::endl;
     }
   }
@@ -67,25 +72,27 @@ class CustomSink {
 
   std::string ColorFormatedMessage(const g3::LogMessage& msg) const {
     std::ostringstream oss;
-    oss << "\033[" << GetColor(msg._level) << "m" << FormatedMessage(msg)
-        << "\033[m";
+    oss << GetColorCode(msg._level) << FormatedMessage(msg) << "\033[m";
     return oss.str();
   }
 
-  int GetColor(const LEVELS& level) const {
+  std::string GetColorCode(const LEVELS& level) const {
     if (level.value == WARNING.value) {
-      return 33;  // yellow
+      return "\033[33m";  // yellow
     }
     if (level.value == DEBUG.value) {
-      return 32;  // green
+      return "\033[32m";  // green
     }
     if (level.value == ERROR.value) {
-      return 31;  // red
+      return "\033[31m";  // red
+    }
+    if (level.value == USER.value) {
+      return "\033[1m\033[34m";  // bold blue
     }
     if (g3::internal::wasFatal(level)) {
-      return 31;  // red
+      return "\033[1m\033[31m";  // red
     }
-    return 97;  // white
+    return "\033[97m";  // white
   }
 };
 

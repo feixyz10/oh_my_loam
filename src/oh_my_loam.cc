@@ -1,21 +1,36 @@
 #include "oh_my_loam.h"
-#include "feature_points_extractor/feature_points_extractor_VLP16.h"
+
+#include "extractor/extractor_VLP16.h"
 
 namespace oh_my_loam {
 
+namespace {
+const double kPointMinDist = 0.1;
+}
+
 bool OhMyLoam::Init() {
   YAML::Node config = Config::Instance()->config();
-  feature_extractor_.reset(new FeaturePointsExtractorVLP16);
-  if (!feature_extractor_->Init(config["feature_extractor_config"])) {
-    AERROR << "Failed to initialize feature points extractor";
+  extractor_.reset(new ExtractorVLP16);
+  if (!extractor_->Init(config["extractor_config"])) {
+    AERROR << "Failed to initialize extractor";
     return false;
   }
   return true;
 }
 
-void OhMyLoam::Run(const PointCloud& cloud, double timestamp) {
-  FeaturePoints feature_pts;
-  feature_extractor_->Extract(cloud, &feature_pts);
+void OhMyLoam::Run(const PointCloud& cloud_in, double timestamp) {
+  PointCloudPtr cloud(new PointCloud);
+  RemoveOutliers(cloud_in, cloud.get());
+  ADEBUG << "After remove, point num: " << cloud_in.size() << " -> "
+         << cloud->size();
+  FeaturePoints feature_points;
+  extractor_->Extract(*cloud, &feature_points);
+}
+
+void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,
+                              PointCloud* const cloud_out) const {
+  RemoveNaNPoint<Point>(cloud_in, cloud_out);
+  RemoveClosedPoints<Point>(*cloud_out, cloud_out, kPointMinDist);
 }
 
 }  // namespace oh_my_loam

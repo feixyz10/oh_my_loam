@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.h"
 #include "config.h"
 #include "log.h"
 #include "macros.h"
