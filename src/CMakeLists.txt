@@ -1,5 +1,6 @@
 add_subdirectory(extractor)
 add_subdirectory(visualizer)
+# add_subdirectory(odometry)
 
 aux_source_directory(. SRC_FILES)
 

@@ -11,7 +11,7 @@ class Extractor {
   virtual ~Extractor() = default;
 
   bool Init(const YAML::Node& config);
-  void Extract(const PointCloud& cloud, FeaturePoints* const feature);
+  void Process(const PointCloud& cloud, FeaturePoints* const feature);
 
   int num_scans() const { return num_scans_; }
 
@@ -27,17 +27,17 @@ class Extractor {
                  double timestamp = std::nan(""));
 
   void SplitScan(const PointCloud& cloud,
-                 std::vector<IPointCloud>* const scans) const;
+                 std::vector<TCTPointCloud>* const scans) const;
 
-  void ComputePointCurvature(IPointCloud* const scan,
+  void ComputePointCurvature(TCTPointCloud* const scan,
                              bool remove_nan = true) const;
 
-  void AssignPointType(IPointCloud* const scan) const;
+  void AssignPointType(TCTPointCloud* const scan) const;
 
-  void SetNeighborsPicked(const IPointCloud& scan, size_t ix,
+  void SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
                           std::vector<bool>* const picked) const;
 
-  void StoreToFeaturePoints(const IPointCloud& scan,
+  void StoreToFeaturePoints(const TCTPointCloud& scan,
                             FeaturePoints* const feature) const;
 
   bool is_vis_ = false;

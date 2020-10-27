@@ -56,4 +56,5 @@ target_link_libraries(main
   oh_my_loam
   extractor
   visualizer
+  # odometry
 )

@@ -24,7 +24,7 @@ void OhMyLoam::Run(const PointCloud& cloud_in, double timestamp) {
   ADEBUG << "After remove, point num: " << cloud_in.size() << " -> "
          << cloud->size();
   FeaturePoints feature_points;
-  extractor_->Extract(*cloud, &feature_points);
+  extractor_->Process(*cloud, &feature_points);
 }
 
 void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,

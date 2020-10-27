@@ -12,8 +12,19 @@ inline double DistanceSqure(const PointT& pt) {
 }
 
 template <typename PointT>
+inline double DistanceSqure(const PointT& pt1, const PointT& pt2) {
+  return (pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y) +
+         (pt1.z - pt2.z) * (pt1.z - pt2.z);
+}
+
+template <typename PointT>
 inline double Distance(const PointT& pt) {
-  return std::sqrt(pt.x * pt.x + pt.y * pt.y + pt.z * pt.z);
+  return std::sqrt(DistanceSqure(pt));
+}
+
+template <typename PointT>
+inline double Distance(const PointT& pt1, const PointT& pt2) {
+  return std::sqrt(DistanceSqure(pt1, pt2));
 }
 
 template <typename PointT>
@@ -27,27 +38,6 @@ double NormalizeAngle(double ang);
 // like Python built-in range, [begin, end)
 const std::vector<int> Range(int begin, int end, int step = 1);
 const std::vector<int> Range(int end);  // [0, end)
-
-template <typename PointT>
-void DrawPointCloud(const pcl::PointCloud<PointT>& cloud, const Color& color,
-                    const std::string& id, PCLVisualizer* const viewer,
-                    int pt_size = 3) {
-  PCLColorHandlerCustom<PointT> color_handler(cloud.makeShared(), color.r,
-                                              color.g, color.b);
-  viewer->addPointCloud<PointT>(cloud.makeShared(), color_handler, id);
-  viewer->setPointCloudRenderingProperties(
-      pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
-}
-
-template <typename PointT>
-void DrawPointCloud(const pcl::PointCloud<PointT>& cloud,
-                    const std::string& field, const std::string& id,
-                    PCLVisualizer* const viewer, int pt_size = 3) {
-  PCLColorHandlerGenericField<PointT> color_handler(cloud.makeShared(), field);
-  viewer->addPointCloud<PointT>(cloud.makeShared(), color_handler, id);
-  viewer->setPointCloudRenderingProperties(
-      pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
-}
 
 template <typename PointT>
 void RemovePointsIf(const pcl::PointCloud<PointT>& cloud_in,

@@ -17,7 +17,7 @@ bool Extractor::Init(const YAML::Node& config) {
   return true;
 }
 
-void Extractor::Extract(const PointCloud& cloud, FeaturePoints* const feature) {
+void Extractor::Process(const PointCloud& cloud, FeaturePoints* const feature) {
   if (cloud.size() < config_["min_point_num"].as<size_t>()) {
     AWARN << "Too few points ( < " << config_["min_point_num"].as<int>()
           << " ) after remove: " << cloud.size();
@@ -25,7 +25,7 @@ void Extractor::Extract(const PointCloud& cloud, FeaturePoints* const feature) {
   }
   TicToc timer;
   // split point cloud int scans
-  std::vector<IPointCloud> scans;
+  std::vector<TCTPointCloud> scans;
   SplitScan(cloud, &scans);
   double time_split = timer.toc();
   // compute curvature for each point in each scan
@@ -62,7 +62,7 @@ void Extractor::Extract(const PointCloud& cloud, FeaturePoints* const feature) {
 }
 
 void Extractor::SplitScan(const PointCloud& cloud,
-                          std::vector<IPointCloud>* const scans) const {
+                          std::vector<TCTPointCloud>* const scans) const {
   scans->resize(num_scans_);
   double yaw_start = -atan2(cloud.points[0].y, cloud.points[0].x);
   bool half_passed = false;
@@ -82,7 +82,7 @@ void Extractor::SplitScan(const PointCloud& cloud,
 }
 
 //
-void Extractor::ComputePointCurvature(IPointCloud* const scan,
+void Extractor::ComputePointCurvature(TCTPointCloud* const scan,
                                       bool remove_nan) const {
   if (scan->size() < 20) return;
   auto& pts = scan->points;
@@ -98,12 +98,12 @@ void Extractor::ComputePointCurvature(IPointCloud* const scan,
                pts[i + 4].z + pts[i + 5].z - 10 * pts[i].z;
     pts[i].curvature = std::sqrt(dx * dx + dy * dy + dz * dz);
   }
-  RemovePointsIf<IPoint>(*scan, scan, [](const IPoint& pt) {
+  RemovePointsIf<TCTPoint>(*scan, scan, [](const TCTPoint& pt) {
     return !std::isfinite(pt.curvature);
   });
 }
 
-void Extractor::AssignPointType(IPointCloud* const scan) const {
+void Extractor::AssignPointType(TCTPointCloud* const scan) const {
   int pt_num = scan->size();
   ACHECK(pt_num >= kScanSegNum);
   int seg_pt_num = (pt_num - 1) / kScanSegNum + 1;
@@ -163,7 +163,7 @@ void Extractor::AssignPointType(IPointCloud* const scan) const {
   }
 }
 
-void Extractor::SetNeighborsPicked(const IPointCloud& scan, size_t ix,
+void Extractor::SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
                                    std::vector<bool>* const picked) const {
   auto DistSqure = [&](int i, int j) -> float {
     float dx = scan.at(i).x - scan.at(j).x;
@@ -187,7 +187,7 @@ void Extractor::SetNeighborsPicked(const IPointCloud& scan, size_t ix,
   }
 }
 
-void Extractor::StoreToFeaturePoints(const IPointCloud& scan,
+void Extractor::StoreToFeaturePoints(const TCTPointCloud& scan,
                                      FeaturePoints* const feature) const {
   for (const auto& pt : scan.points) {
     switch (pt.type) {

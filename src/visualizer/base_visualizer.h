@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "common.h"
+#include "utils.h"
 
 namespace oh_my_loam {
 
@@ -77,7 +78,7 @@ class Visualizer {
    * @brief Draw objects. This method should be overrided for customization.
    *
    * virtual void Draw() {
-   *   VisFrame frame* = GetCurrentFrame();
+   *   auto frame = GetCurrentFrame<VisFrame>();
    *   {  // Update cloud
    *     std::string id = "point cloud";
    *     DrawPointCloud(*frame.cloud, {255, 255, 255}, id, viewer_.get());

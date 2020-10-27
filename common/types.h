@@ -28,17 +28,48 @@ enum class PointType {
   SHARP = 2,
 };
 
+struct PointXYZT;
+using TPoint = PointXYZT;
+using TPointCloud = pcl::PointCloud<TPoint>;
+using TPointCloudPtr = TPointCloud::Ptr;
+using TPointCloudConstPtr = TPointCloud::ConstPtr;
+
 struct PointXYZTCT;
+using TCTPoint = PointXYZTCT;
+using TCTPointCloud = pcl::PointCloud<TCTPoint>;
+using TCTPointCloudPtr = TCTPointCloud::Ptr;
+using TCTPointCloudConstPtr = TCTPointCloud::ConstPtr;
 
-using IPoint = PointXYZTCT;
-using IPointCloud = pcl::PointCloud<IPoint>;
-using IPointCloudPtr = IPointCloud::Ptr;
-using IPointCloudConstPtr = IPointCloud::ConstPtr;
+struct PointXYZT {
+  PCL_ADD_POINT4D;
+  float time;
 
-using PCLVisualizer = pcl::visualization::PCLVisualizer;
-#define PCLColorHandlerCustom pcl::visualization::PointCloudColorHandlerCustom
-#define PCLColorHandlerGenericField \
-  pcl::visualization::PointCloudColorHandlerGenericField
+  PointXYZT() {
+    x = y = z = 0.0f;
+    time = 0.0f;
+  }
+
+  PointXYZT(float x, float y, float z, float time = 0.0f)
+      : x(x), y(y), z(z), time(time) {}
+
+  PointXYZT(const Point& p) {
+    x = p.x;
+    y = p.y;
+    z = p.z;
+    time = 0.0f;
+  }
+
+  PointXYZT(const PointXYZT& p) {
+    x = p.x;
+    y = p.y;
+    z = p.z;
+    time = p.time;
+    curvature = p.curvature;
+    type = p.type;
+  }
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
 
 struct PointXYZTCT {
   PCL_ADD_POINT4D;
@@ -88,12 +119,19 @@ struct PointXYZTCT {
 
 // clang-format off
 POINT_CLOUD_REGISTER_POINT_STRUCT(
+  oh_my_loam::PointXYZT,
+  (float, x, x)
+  (float, y, y)
+  (float, z, z)
+  (float, time, time)
+)
+
+POINT_CLOUD_REGISTER_POINT_STRUCT(
   oh_my_loam::PointXYZTCT,
   (float, x, x)
   (float, y, y)
   (float, z, z)
   (float, time, time)
   (float, curvature, curvature)
-  // (int8_t, type, type)
 )
 // clang-format on
