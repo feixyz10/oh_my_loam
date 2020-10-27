@@ -18,7 +18,6 @@ struct VisFrame {
   PointCloudPtr cloud = nullptr;
 };
 
-template <typename FrameT>
 class Visualizer {
  public:
   Visualizer(const std::string &name, size_t max_history_size)
@@ -50,7 +49,7 @@ class Visualizer {
     }
   }
 
-  void Render(const std::shared_ptr<FrameT> &frame) {
+  void Render(const std::shared_ptr<VisFrame> &frame) {
     std::lock_guard<std::mutex> lock(mutex_);
     while (history_frames_.size() > max_history_size_) {
       history_frames_.pop_back();
@@ -78,7 +77,7 @@ class Visualizer {
    * @brief Draw objects. This method should be overrided for customization.
    *
    * virtual void Draw() {
-   *   FrameT frame = GetCurrentFrame();
+   *   VisFrame frame* = GetCurrentFrame();
    *   {  // Update cloud
    *     std::string id = "point cloud";
    *     DrawPointCloud(*frame.cloud, {255, 255, 255}, id, viewer_.get());
@@ -128,9 +127,10 @@ class Visualizer {
     viewer_->removeAllShapes();
   }
 
+  template <typename FrameT>
   FrameT GetCurrentFrame() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return *(*curr_frame_iter_);
+    return *static_cast<FrameT *>((*curr_frame_iter_).get());
   }
 
   // visualizer name
@@ -147,10 +147,10 @@ class Visualizer {
   std::atomic_bool is_updated_{false};
 
   // The visualizer frame list
-  std::deque<std::shared_ptr<FrameT>> history_frames_;
+  std::deque<std::shared_ptr<VisFrame>> history_frames_;
 
   // The current displayed frame iter.
-  typename std::deque<std::shared_ptr<FrameT>>::const_iterator curr_frame_iter_;
+  typename std::deque<std::shared_ptr<VisFrame>>::iterator curr_frame_iter_;
 
   // The rendered cloud ids.
   std::vector<std::string> rendered_cloud_ids_;

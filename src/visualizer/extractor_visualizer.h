@@ -9,11 +9,11 @@ struct ExtractorVisFrame : public VisFrame {
   FeaturePoints feature_pts;
 };
 
-class ExtractorVisualizer : public Visualizer<ExtractorVisFrame> {
+class ExtractorVisualizer : public Visualizer {
  public:
   explicit ExtractorVisualizer(const std::string &name = "ExtractorVisualizer",
                                size_t max_history_size = 10)
-      : Visualizer<ExtractorVisFrame>(name, max_history_size) {}
+      : Visualizer(name, max_history_size) {}
 
  private:
   void Draw() override;

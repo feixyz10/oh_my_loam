@@ -3,7 +3,7 @@
 namespace oh_my_loam {
 
 void ExtractorVisualizer::Draw() {
-  auto frame = GetCurrentFrame();
+  auto frame = GetCurrentFrame<ExtractorVisFrame>();
   {  // add raw point cloud
     std::string id = "raw point cloud";
     DrawPointCloud(*frame.cloud, WHITE, id, viewer_.get());
