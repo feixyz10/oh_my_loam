@@ -64,8 +64,6 @@ struct PointXYZT {
     y = p.y;
     z = p.z;
     time = p.time;
-    curvature = p.curvature;
-    type = p.type;
   }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
