@@ -4,6 +4,7 @@
 #include "config.h"
 #include "log.h"
 #include "macros.h"
+#include "pose.h"
 #include "tic_toc.h"
 #include "types.h"
 #include "utils.h"

@@ -3,7 +3,7 @@ project(oh_my_loam)
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++17  -lpthread")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
 
 find_package(Ceres REQUIRED)
 find_package(PCL QUIET)
@@ -30,6 +30,9 @@ include_directories(SYSTEM
   ${G3LOG_INCLUDE_DIRS}
 )
 
+# link_directories(${PCL_LIBRARY_DIRS})
+# add_definitions(${PCL_DEFINITIONS})
+
 include_directories(
   src
   common
@@ -53,10 +56,10 @@ target_link_libraries(main
   ${YAML_CPP_LIBRARIES}
   g3log
   common
-  oh_my_loam
-  # helper
-  # solver
   extractor
   visualizer
-  # odometry
+  helper
+  solver
+  odometry
+  oh_my_loam
 )

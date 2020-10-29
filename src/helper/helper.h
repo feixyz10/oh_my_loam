@@ -17,7 +17,8 @@ struct PointLinePair {
   };
   Line line;
   PointLinePair(const TPoint& pt, const Line& line) : pt(pt), line(line) {}
-  double DistPointToLine() const;
+  PointLinePair(const TPoint& pt, const TPoint& pt1, const TPoint& pt2)
+      : pt(pt), line(pt1, pt2) {}
 };
 
 struct PointPlanePair {
@@ -30,7 +31,9 @@ struct PointPlanePair {
   };
   Plane plane;
   PointPlanePair(const TPoint& pt, const Plane& plane) : pt(pt), plane(plane) {}
-  double DistPointToPlane() const;
+  PointPlanePair(const TPoint& pt, const TPoint& pt1, const TPoint& pt2,
+                 const TPoint& pt3)
+      : pt(pt), plane(pt1, pt2, pt3) {}
 };
 
 }  // oh_my_loam

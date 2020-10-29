@@ -37,8 +37,8 @@ class Extractor {
   void SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
                           std::vector<bool>* const picked) const;
 
-  void StoreToFeaturePoints(const TCTPointCloud& scan,
-                            FeaturePoints* const feature) const;
+  void GenerateFeaturePoints(const TCTPointCloud& scan,
+                             FeaturePoints* const feature) const;
 
   bool is_vis_ = false;
 

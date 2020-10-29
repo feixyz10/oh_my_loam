@@ -8,9 +8,13 @@
 #include <pcl/visualization/point_cloud_handlers.h>
 
 #include <cmath>
-// This hpp file should be included if user-defined point type is added, see
+// Thses hpp file should be included if user-defined point type is added, see
 // "How are the point types exposed?" section in
 // https://pointclouds.org/documentation/tutorials/adding_custom_ptype.html
+#include <pcl/filters/impl/voxel_grid.hpp>
+#include <pcl/impl/pcl_base.hpp>
+#include <pcl/kdtree/impl/kdtree_flann.hpp>
+#include <pcl/visualization/impl/pcl_visualizer.hpp>
 #include <pcl/visualization/impl/point_cloud_geometry_handlers.hpp>
 
 namespace oh_my_loam {

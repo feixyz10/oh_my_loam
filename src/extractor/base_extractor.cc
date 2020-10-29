@@ -44,7 +44,7 @@ void Extractor::Process(const PointCloud& cloud, FeaturePoints* const feature) {
   oss << "Feature point num: ";
   for (const auto& scan : scans) {
     FeaturePoints scan_feature;
-    StoreToFeaturePoints(scan, &scan_feature);
+    GenerateFeaturePoints(scan, &scan_feature);
     feature->Add(scan_feature);
     oss << scan.size() << ":" << scan_feature.sharp_corner_pts->size() << ":"
         << scan_feature.less_sharp_corner_pts->size() << ":"
@@ -187,29 +187,33 @@ void Extractor::SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
   }
 }
 
-void Extractor::StoreToFeaturePoints(const TCTPointCloud& scan,
-                                     FeaturePoints* const feature) const {
+void Extractor::GenerateFeaturePoints(const TCTPointCloud& scan,
+                                      FeaturePoints* const feature) const {
   for (const auto& pt : scan.points) {
     switch (pt.type) {
       case PointType::FLAT:
-        feature->flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z);
+        feature->flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z, pt.time);
       // no break: FLAT points are also LESS_FLAT
       case PointType::LESS_FLAT:
-        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z);
+        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z,
+                                                         pt.time);
         break;
       case PointType::SHARP:
-        feature->sharp_corner_pts->points.emplace_back(pt.x, pt.y, pt.z);
+        feature->sharp_corner_pts->points.emplace_back(pt.x, pt.y, pt.z,
+                                                       pt.time);
       // no break: SHARP points are also LESS_SHARP
       case PointType::LESS_SHARP:
-        feature->less_sharp_corner_pts->points.emplace_back(pt.x, pt.y, pt.z);
+        feature->less_sharp_corner_pts->points.emplace_back(pt.x, pt.y, pt.z,
+                                                            pt.time);
         break;
       default:
         // all the rest are also LESS_FLAT
-        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z);
+        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z,
+                                                         pt.time);
         break;
     }
   }
-  PointCloudPtr filtered_less_flat_surf_pts(new PointCloud);
+  TPointCloudPtr filtered_less_flat_surf_pts(new TPointCloud);
   VoxelDownSample(*feature->less_flat_surf_pts,
                   filtered_less_flat_surf_pts.get(),
                   config_["downsample_voxel_size"].as<double>());

@@ -15,6 +15,11 @@ bool OhMyLoam::Init() {
     AERROR << "Failed to initialize extractor";
     return false;
   }
+  odometry_.reset(new Odometry);
+  if (!odometry_->Init(config["odometry_config"])) {
+    AERROR << "Failed to initialize odometry";
+    return false;
+  }
   return true;
 }
 
@@ -25,6 +30,10 @@ void OhMyLoam::Run(const PointCloud& cloud_in, double timestamp) {
          << cloud->size();
   FeaturePoints feature_points;
   extractor_->Process(*cloud, &feature_points);
+  Pose3D pose;
+  odometry_->Process(feature_points, &pose);
+  poses_.emplace_back(pose);
+  AINFO << pose.ToString();
 }
 
 void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,

@@ -1,20 +1,20 @@
 #pragma once
 
-#include "common.h"
+#include "types.h"
 
 namespace oh_my_loam {
 
 struct FeaturePoints {
-  PointCloudPtr sharp_corner_pts;
-  PointCloudPtr less_sharp_corner_pts;
-  PointCloudPtr flat_surf_pts;
-  PointCloudPtr less_flat_surf_pts;
+  TPointCloudPtr sharp_corner_pts;
+  TPointCloudPtr less_sharp_corner_pts;
+  TPointCloudPtr flat_surf_pts;
+  TPointCloudPtr less_flat_surf_pts;
 
   FeaturePoints() {
-    sharp_corner_pts.reset(new PointCloud);
-    less_sharp_corner_pts.reset(new PointCloud);
-    flat_surf_pts.reset(new PointCloud);
-    less_flat_surf_pts.reset(new PointCloud);
+    sharp_corner_pts.reset(new TPointCloud);
+    less_sharp_corner_pts.reset(new TPointCloud);
+    flat_surf_pts.reset(new TPointCloud);
+    less_flat_surf_pts.reset(new TPointCloud);
   }
 
   void Add(const FeaturePoints& rhs) {

@@ -4,7 +4,7 @@
 
 #include <functional>
 
-#include "common/common.h"
+#include "common.h"
 #include "src/oh_my_loam.h"
 
 using namespace oh_my_loam;

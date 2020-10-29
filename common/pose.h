@@ -14,10 +14,10 @@ class Pose3D {
   Pose3D(const Eigen::Quaterniond& q, const Eigen::Vector3d& p)
       : q_(q), p_(p) {}
 
-  Pose3D(const Eigen::Matrix3d& r_mat, const Eigen::Vector3d& p) {
-    q_ = Eigen::Quaterniond(r_mat);
-    p_ = p;
-  }
+  Pose3D(const Eigen::Matrix3d& r_mat, const Eigen::Vector3d& p)
+      : q_(r_mat), p_(p) {}
+
+  Pose3D(const double* const q, const double* const p) : q_(q), p_(p) {}
 
   Pose3D Inv() const {
     auto q_inv = q_.inverse();
@@ -29,6 +29,10 @@ class Pose3D {
     return q_ * vec + p_;
   }
 
+  Eigen::Vector3d operator*(const Eigen::Vector3d& vec) const {
+    return Transform(vec);
+  }
+
   template <typename PointT>
   PointT Transform(const PointT& pt) const {
     PointT pt_n = pt;
@@ -37,6 +41,11 @@ class Pose3D {
     pt_n.y = vec.y;
     pt_n.z = vec.z;
     return pt_n;
+  }
+
+  template <typename PointT>
+  PointT operator*(const PointT& vec) const {
+    return Transform<PointT>(vec);
   }
 
   Eigen::Vector3d Translate(const Eigen::Vector3d& vec) const {
@@ -52,11 +61,20 @@ class Pose3D {
     return {q_interp, p_interp};
   }
 
+  std::string ToString() const;
+
+  Eigen::Quaterniond q() const { return q_; }
+  Eigen::Vector3d p() const { return p_; }
+
  protected:
   Eigen::Quaterniond q_;  // orientation
   Eigen::Vector3d p_;     // position
 };
 
 Pose3D Interpolate(const Pose3D& pose_from, const Pose3D& pose_to, double t);
+
+Pose3D operator*(const Pose3D& lhs, const Pose3D& rhs);
+
+using Trans3D = Pose3D;
 
 }  // namespace oh_my_loam
