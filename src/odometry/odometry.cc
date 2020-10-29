@@ -5,7 +5,6 @@ namespace oh_my_loam {
 
 namespace {
 int kNearbyScanNum = 2;
-double kDistSquareThresh = 25;
 size_t kMinMatchNum = 10;
 }  // namespace
 
@@ -23,15 +22,17 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
     *pose = pose_curr2world_;
     return;
   }
+  double match_dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
     std::vector<PointLinePair> pl_pairs;
     std::vector<PointPlanePair> pp_pairs;
-    AssociateCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
-                        kDistSquareThresh);
-    AssociateSurfPoints(*feature.flat_surf_pts, *surf_pts_pre_, &pp_pairs,
-                        kDistSquareThresh);
+    MatchCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
+                    match_dist_sq_thresh);
+    MatchSurfPoints(*feature.flat_surf_pts, *surf_pts_pre_, &pp_pairs,
+                    match_dist_sq_thresh);
     if (pl_pairs.size() + pp_pairs.size() < kMinMatchNum) {
-      AWARN << "Too less correspondence";
+      AWARN << "Too less correspondence: num = "
+            << pl_pairs.size() + pp_pairs.size();
     }
     double* q = pose_curr2last_.q().coeffs().data();
     double* p = pose_curr2last_.p().data();
@@ -50,10 +51,9 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
   UpdatePre(feature);
 }
 
-void Odometry::AssociateCornPoints(const TPointCloud& src,
-                                   const TPointCloud& tgt,
-                                   std::vector<PointLinePair>* const pairs,
-                                   double dist_thresh) const {
+void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
+                               std::vector<PointLinePair>* const pairs,
+                               double dist_thresh) const {
   kdtree_corn_pts_->setInputCloud(tgt.makeShared());
   for (const auto& query_pt : src) {
     std::vector<int> indices;
@@ -93,10 +93,9 @@ void Odometry::AssociateCornPoints(const TPointCloud& src,
   }
 }
 
-void Odometry::AssociateSurfPoints(const TPointCloud& src,
-                                   const TPointCloud& tgt,
-                                   std::vector<PointPlanePair>* const pairs,
-                                   double dist_thresh) const {
+void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
+                               std::vector<PointPlanePair>* const pairs,
+                               double dist_thresh) const {
   kdtree_surf_pts_->setInputCloud(tgt.makeShared());
   for (const auto& query_pt : src) {
     std::vector<int> indices;

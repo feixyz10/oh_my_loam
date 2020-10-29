@@ -18,13 +18,13 @@ class Odometry {
 
  protected:
   void UpdatePre(const FeaturePoints& feature);
-  void AssociateCornPoints(const TPointCloud& src, const TPointCloud& tgt,
-                           std::vector<PointLinePair>* const pairs,
-                           double dist_thresh) const;
+  void MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
+                       std::vector<PointLinePair>* const pairs,
+                       double dist_thresh) const;
 
-  void AssociateSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
-                           std::vector<PointPlanePair>* const pairs,
-                           double dist_thresh) const;
+  void MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
+                       std::vector<PointPlanePair>* const pairs,
+                       double dist_thresh) const;
 
   Pose3D pose_curr2world_;
   Pose3D pose_curr2last_;

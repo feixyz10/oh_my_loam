@@ -30,8 +30,8 @@ include_directories(SYSTEM
   ${G3LOG_INCLUDE_DIRS}
 )
 
-# link_directories(${PCL_LIBRARY_DIRS})
-# add_definitions(${PCL_DEFINITIONS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 include_directories(
   src
@@ -51,15 +51,15 @@ add_executable(main main.cc)
 target_link_libraries(main
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES}
-  ${CERES_LIBRARIES}
   ${G3LOG_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   g3log
   common
+  oh_my_loam
   extractor
   visualizer
-  helper
-  solver
   odometry
-  oh_my_loam
+  solver
+  ${CERES_LIBRARIES}
+  helper
 )
