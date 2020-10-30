@@ -19,4 +19,4 @@ extractor_config:
 
 odometry_config: 
   icp_iter_num : 2
-  dist_sq_thresh: 100
+  match_dist_thresh: 0.5

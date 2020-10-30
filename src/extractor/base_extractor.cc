@@ -77,7 +77,8 @@ void Extractor::SplitScan(const PointCloud& cloud,
       half_passed = true;
       yaw_start += kTwoPi;
     }
-    (*scans)[scan_id].points.emplace_back(pt.x, pt.y, pt.z, yaw_diff / kTwoPi);
+    (*scans)[scan_id].points.emplace_back(pt.x, pt.y, pt.z,
+                                          yaw_diff / kTwoPi + scan_id);
   }
 }
 

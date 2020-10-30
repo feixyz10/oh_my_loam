@@ -20,16 +20,26 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
     is_initialized = true;
     UpdatePre(feature);
     *pose = pose_curr2world_;
+    AINFO << "Odometry initialized....";
     return;
   }
-  double match_dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
+  double match_dist_thresh = config_["match_dist_thresh"].as<double>();
+  AINFO << "Pose before: " << pose_curr2world_.ToString();
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
     std::vector<PointLinePair> pl_pairs;
     std::vector<PointPlanePair> pp_pairs;
     MatchCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
-                    match_dist_sq_thresh);
+                    match_dist_thresh);
+    AINFO_IF(i == 0) << "PL mathch: src size = "
+                     << feature.sharp_corner_pts->size()
+                     << ", tgt size = " << corn_pts_pre_->size();
     MatchSurfPoints(*feature.flat_surf_pts, *surf_pts_pre_, &pp_pairs,
-                    match_dist_sq_thresh);
+                    match_dist_thresh);
+    AINFO_IF(i == 0) << "PP mathch: src size = "
+                     << feature.flat_surf_pts->size()
+                     << ", tgt size = " << surf_pts_pre_->size();
+    AINFO << "Matched num, pl = " << pl_pairs.size()
+          << ", pp = " << pp_pairs.size();
     if (pl_pairs.size() + pp_pairs.size() < kMinMatchNum) {
       AWARN << "Too less correspondence: num = "
             << pl_pairs.size() + pp_pairs.size();
@@ -48,6 +58,8 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
   *pose = pose_curr2world_;
+  AWARN << "Pose increase: " << pose_curr2last_.ToString();
+  AWARN << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(feature);
 }
 
@@ -55,6 +67,7 @@ void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointLinePair>* const pairs,
                                double dist_thresh) const {
   kdtree_corn_pts_->setInputCloud(tgt.makeShared());
+
   for (const auto& query_pt : src) {
     std::vector<int> indices;
     std::vector<float> dists;
@@ -97,6 +110,8 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointPlanePair>* const pairs,
                                double dist_thresh) const {
   kdtree_surf_pts_->setInputCloud(tgt.makeShared());
+  AINFO << "Point to plane mathch: src size = " << src.size()
+        << ", tgt size = " << tgt.size();
   for (const auto& query_pt : src) {
     std::vector<int> indices;
     std::vector<float> dists;

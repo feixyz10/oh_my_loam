@@ -33,7 +33,6 @@ void OhMyLoam::Run(const PointCloud& cloud_in, double timestamp) {
   Pose3D pose;
   odometry_->Process(feature_points, &pose);
   poses_.emplace_back(pose);
-  AINFO << pose.ToString();
 }
 
 void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,
