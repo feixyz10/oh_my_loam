@@ -4,8 +4,6 @@
 #include <memory>
 #include <mutex>
 
-// #define LOG_TIMESTAMP(timestamp, precision)
-//   std::fixed << std::precision(precision) << timestamp;
 #define LOG_TIMESTAMP(timestamp) \
   std::fixed << std::setprecision(3) << timestamp;
 
@@ -17,7 +15,7 @@
 #define DECLARE_SINGLETON(classname)                                           \
  public:                                                                       \
   static classname *Instance() {                                               \
-    static std::unique_ptr<classname> instance = nullptr;                      \
+    static std::unique_ptr<classname> instance{nullptr};                       \
     if (!instance) {                                                           \
       static std::once_flag flag;                                              \
       std::call_once(flag,                                                     \

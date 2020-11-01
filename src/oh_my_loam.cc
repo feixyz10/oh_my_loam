@@ -26,8 +26,6 @@ bool OhMyLoam::Init() {
 void OhMyLoam::Run(const PointCloud& cloud_in, double timestamp) {
   PointCloudPtr cloud(new PointCloud);
   RemoveOutliers(cloud_in, cloud.get());
-  ADEBUG << "After remove, point num: " << cloud_in.size() << " -> "
-         << cloud->size();
   FeaturePoints feature_points;
   extractor_->Process(*cloud, &feature_points);
   Pose3D pose;

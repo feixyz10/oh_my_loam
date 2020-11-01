@@ -40,18 +40,9 @@ void Extractor::Process(const PointCloud& cloud, FeaturePoints* const feature) {
   }
   double time_assign = timer.toc();
   // store points into feature point clouds according to their type
-  std::ostringstream oss;
-  oss << "Feature point num: ";
   for (const auto& scan : scans) {
-    FeaturePoints scan_feature;
-    GenerateFeaturePoints(scan, &scan_feature);
-    feature->Add(scan_feature);
-    oss << scan.size() << ":" << scan_feature.sharp_corner_pts->size() << ":"
-        << scan_feature.less_sharp_corner_pts->size() << ":"
-        << scan_feature.flat_surf_pts->size() << ":"
-        << scan_feature.less_flat_surf_pts->size() << " ";
+    GenerateFeaturePoints(scan, feature);
   }
-  ADEBUG << oss.str();
   double time_store = timer.toc();
   AINFO << "Time elapsed (ms): scan_split = " << std::setprecision(3)
         << time_split << ", curvature_compute = " << time_curv - time_split
@@ -190,6 +181,7 @@ void Extractor::SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
 
 void Extractor::GenerateFeaturePoints(const TCTPointCloud& scan,
                                       FeaturePoints* const feature) const {
+  // TPointCloudPtr less_flat_surf_pts(new TPointCloud);
   for (const auto& pt : scan.points) {
     switch (pt.type) {
       case PointType::FLAT:
@@ -214,11 +206,11 @@ void Extractor::GenerateFeaturePoints(const TCTPointCloud& scan,
         break;
     }
   }
-  TPointCloudPtr filtered_less_flat_surf_pts(new TPointCloud);
-  VoxelDownSample(*feature->less_flat_surf_pts,
-                  filtered_less_flat_surf_pts.get(),
-                  config_["downsample_voxel_size"].as<double>());
-  feature->less_flat_surf_pts = filtered_less_flat_surf_pts;
+  // TPointCloudPtr filtered_less_flat_surf_pts(new TPointCloud);
+  // VoxelDownSample<TPoint>(less_flat_surf_pts,
+  // filtered_less_flat_surf_pts.get(),
+  //                         config_["downsample_voxel_size"].as<double>());
+  // *feature->less_flat_surf_pts += *filtered_less_flat_surf_pts;
 }
 
 void Extractor::Visualize(const PointCloud& cloud,

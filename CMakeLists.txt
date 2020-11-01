@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(oh_my_loam)
 
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -lpthread")
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++17  -lpthread")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 find_package(Ceres REQUIRED)
 find_package(PCL QUIET)

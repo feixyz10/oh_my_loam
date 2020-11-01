@@ -16,13 +16,6 @@ struct FeaturePoints {
     flat_surf_pts.reset(new TPointCloud);
     less_flat_surf_pts.reset(new TPointCloud);
   }
-
-  void Add(const FeaturePoints& rhs) {
-    *sharp_corner_pts += *rhs.sharp_corner_pts;
-    *less_sharp_corner_pts += *rhs.less_sharp_corner_pts;
-    *flat_surf_pts += *rhs.flat_surf_pts;
-    *less_flat_surf_pts += *rhs.less_flat_surf_pts;
-  }
 };
 
 }  // namespace oh_my_loam

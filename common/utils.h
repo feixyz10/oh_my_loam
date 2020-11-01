@@ -77,11 +77,11 @@ void RemoveClosedPoints(const pcl::PointCloud<PointT>& cloud_in,
 }
 
 template <typename PointT>
-void VoxelDownSample(const pcl::PointCloud<PointT>& cloud_in,
+void VoxelDownSample(const typename pcl::PointCloud<PointT>::ConstPtr& cloud_in,
                      pcl::PointCloud<PointT>* const cloud_out,
                      double voxel_size) {
   pcl::VoxelGrid<PointT> filter;
-  filter.setInputCloud(cloud_in.makeShared());
+  filter.setInputCloud(cloud_in);
   filter.setLeafSize(voxel_size, voxel_size, voxel_size);
   filter.filter(*cloud_out);
 }

@@ -4,9 +4,11 @@
 
 namespace oh_my_loam {
 
-float GetTime(const TPoint& pt);
+inline float GetTime(const TPoint& pt) {
+  return pt.time - static_cast<int>(pt.time);
+}
 
-int GetScanId(const TPoint& pt);
+inline int GetScanId(const TPoint& pt) { return static_cast<int>(pt.time); }
 
 struct PointLinePair {
   TPoint pt;
@@ -36,4 +38,4 @@ struct PointPlanePair {
       : pt(pt), plane(pt1, pt2, pt3) {}
 };
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

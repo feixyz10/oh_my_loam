@@ -1,4 +1,5 @@
 #include "odometry.h"
+
 #include "solver/solver.h"
 
 namespace oh_my_loam {
@@ -20,21 +21,25 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
     is_initialized = true;
     UpdatePre(feature);
     *pose = pose_curr2world_;
-    AINFO << "Odometry initialized....";
+    AWARN << "Odometry initialized....";
     return;
   }
-  double match_dist_thresh = config_["match_dist_thresh"].as<double>();
+  TicToc timer_whole;
+  double match_dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   AINFO << "Pose before: " << pose_curr2world_.ToString();
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
+    TicToc timer;
     std::vector<PointLinePair> pl_pairs;
     std::vector<PointPlanePair> pp_pairs;
     MatchCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
-                    match_dist_thresh);
+                    match_dist_sq_thresh);
+    double time_pl_match = timer.toc();
     AINFO_IF(i == 0) << "PL mathch: src size = "
                      << feature.sharp_corner_pts->size()
                      << ", tgt size = " << corn_pts_pre_->size();
     MatchSurfPoints(*feature.flat_surf_pts, *surf_pts_pre_, &pp_pairs,
-                    match_dist_thresh);
+                    match_dist_sq_thresh);
+    double timer_pp_match = timer.toc();
     AINFO_IF(i == 0) << "PP mathch: src size = "
                      << feature.flat_surf_pts->size()
                      << ", tgt size = " << surf_pts_pre_->size();
@@ -44,8 +49,10 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
       AWARN << "Too less correspondence: num = "
             << pl_pairs.size() + pp_pairs.size();
     }
-    double* q = pose_curr2last_.q().coeffs().data();
-    double* p = pose_curr2last_.p().data();
+    Eigen::Vector4d q_vec = pose_curr2last_.q().coeffs();
+    Eigen::Vector3d p_vec = pose_curr2last_.p();
+    double* q = q_vec.data();
+    double* p = p_vec.data();
     PoseSolver solver(q, p);
     for (const auto& pair : pl_pairs) {
       solver.AddPointLinePair(pair, GetTime(pair.pt));
@@ -55,27 +62,30 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
     }
     solver.Solve();
     pose_curr2last_ = Pose3D(q, p);
+    double time_solve = timer.toc();
+    AINFO << "Time elapsed (ms), pl_match = " << time_pl_match
+          << ", pp_match = " << timer_pp_match - time_pl_match
+          << ", solve = " << time_solve - timer_pp_match;
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
   *pose = pose_curr2world_;
   AWARN << "Pose increase: " << pose_curr2last_.ToString();
   AWARN << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(feature);
+  AINFO << "Time elapsed (ms): whole odometry = " << timer_whole.toc();
 }
 
 void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointLinePair>* const pairs,
-                               double dist_thresh) const {
-  kdtree_corn_pts_->setInputCloud(tgt.makeShared());
-
+                               double dist_sq_thresh) const {
   for (const auto& query_pt : src) {
     std::vector<int> indices;
     std::vector<float> dists;
     kdtree_corn_pts_->nearestKSearch(query_pt, 1, indices, dists);
-    if (dists[0] >= dist_thresh) continue;
+    if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = tgt.points[indices[0]];
     int pt2_idx = -1;
-    double min_dist_pt2_squre = dist_thresh * dist_thresh;
+    double min_dist_pt2_squre = dist_sq_thresh;
     int query_pt_scan_id = GetScanId(query_pt);
     for (int i = indices[0] + 1; i < static_cast<int>(tgt.size()); ++i) {
       const auto pt = tgt.points[i];
@@ -108,25 +118,23 @@ void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
 
 void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointPlanePair>* const pairs,
-                               double dist_thresh) const {
-  kdtree_surf_pts_->setInputCloud(tgt.makeShared());
-  AINFO << "Point to plane mathch: src size = " << src.size()
-        << ", tgt size = " << tgt.size();
+                               double dist_sq_thresh) const {
   for (const auto& query_pt : src) {
     std::vector<int> indices;
     std::vector<float> dists;
     kdtree_surf_pts_->nearestKSearch(query_pt, 1, indices, dists);
-    if (dists[0] >= dist_thresh) continue;
+    if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = tgt.points[indices[0]];
     int pt2_idx = -1, pt3_idx = -1;
-    double min_dist_pt2_squre = dist_thresh * dist_thresh;
-    double min_dist_pt3_squre = dist_thresh * dist_thresh;
+    double min_dist_pt2_squre = dist_sq_thresh;
+    double min_dist_pt3_squre = dist_sq_thresh;
     int query_pt_scan_id = GetScanId(query_pt);
     for (int i = indices[0] + 1; i < static_cast<int>(tgt.size()); ++i) {
       const auto pt = tgt.points[i];
       int scan_id = GetScanId(pt);
       if (scan_id > query_pt_scan_id + kNearbyScanNum) break;
       double dist_squre = DistanceSqure(query_pt, pt);
+      // AWARN_IF(scan_id != 0) << "SA" << query_pt_scan_id << ", " << scan_id;
       if (scan_id == query_pt_scan_id && dist_squre < min_dist_pt2_squre) {
         pt2_idx = i;
         min_dist_pt2_squre = dist_squre;
@@ -140,9 +148,9 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
     for (int i = indices[0] - 1; i >= 0; --i) {
       const auto pt = tgt.points[i];
       int scan_id = GetScanId(pt);
-      if (scan_id >= query_pt_scan_id) continue;
       if (scan_id < query_pt_scan_id - kNearbyScanNum) break;
       double dist_squre = DistanceSqure(query_pt, pt);
+      // AWARN_IF(scan_id != 0) << "SD" << query_pt_scan_id << ", " << scan_id;
       if (scan_id == query_pt_scan_id && dist_squre < min_dist_pt2_squre) {
         pt2_idx = i;
         min_dist_pt2_squre = dist_squre;
@@ -163,6 +171,8 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
 void Odometry::UpdatePre(const FeaturePoints& feature) {
   surf_pts_pre_ = feature.less_flat_surf_pts;
   corn_pts_pre_ = feature.less_sharp_corner_pts;
+  kdtree_surf_pts_->setInputCloud(surf_pts_pre_);
+  kdtree_corn_pts_->setInputCloud(corn_pts_pre_);
 }
 
 }  // namespace oh_my_loam

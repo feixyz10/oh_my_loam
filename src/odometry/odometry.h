@@ -20,11 +20,11 @@ class Odometry {
   void UpdatePre(const FeaturePoints& feature);
   void MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
                        std::vector<PointLinePair>* const pairs,
-                       double dist_thresh) const;
+                       double dist_sq_thresh) const;
 
   void MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
                        std::vector<PointPlanePair>* const pairs,
-                       double dist_thresh) const;
+                       double dist_sq_thresh) const;
 
   Pose3D pose_curr2world_;
   Pose3D pose_curr2last_;
