@@ -29,11 +29,11 @@ class Odometry {
   Pose3D pose_curr2world_;
   Pose3D pose_curr2last_;
 
-  TPointCloudPtr surf_pts_pre_;
-  TPointCloudPtr corn_pts_pre_;
+  TPointCloudPtr surf_pts_pre_{nullptr};
+  TPointCloudPtr corn_pts_pre_{nullptr};
 
-  pcl::KdTreeFLANN<TPoint>::Ptr kdtree_surf_pts_;
-  pcl::KdTreeFLANN<TPoint>::Ptr kdtree_corn_pts_;
+  pcl::KdTreeFLANN<TPoint>::Ptr kdtree_surf_pts_{nullptr};
+  pcl::KdTreeFLANN<TPoint>::Ptr kdtree_corn_pts_{nullptr};
 
   bool is_initialized = false;
   YAML::Node config_;

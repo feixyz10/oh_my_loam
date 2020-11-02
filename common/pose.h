@@ -20,9 +20,9 @@ class Pose3D {
   Pose3D(const double* const q, const double* const p) : q_(q), p_(p) {}
 
   Pose3D Inv() const {
-    auto q_inv = q_.inverse();
-    auto p_inv = q_inv * p_;
-    return {q_inv, p_inv};
+    Eigen::Quaterniond q_inv = q_.inverse();
+    Eigen::Vector3d p_inv = q_inv * p_;
+    return {q_inv, -p_inv};
   }
 
   Eigen::Vector3d Transform(const Eigen::Vector3d& vec) const {
@@ -37,9 +37,9 @@ class Pose3D {
   PointT Transform(const PointT& pt) const {
     PointT pt_n = pt;
     Eigen::Vector3d vec = Transform(Eigen::Vector3d(pt.x, pt.y, pt.z));
-    pt_n.x = vec.x;
-    pt_n.y = vec.y;
-    pt_n.z = vec.z;
+    pt_n.x = static_cast<float>(vec.x());
+    pt_n.y = static_cast<float>(vec.y());
+    pt_n.z = static_cast<float>(vec.z());
     return pt_n;
   }
 
@@ -55,9 +55,9 @@ class Pose3D {
   Eigen::Vector3d Rotate(const Eigen::Vector3d& vec) const { return q_ * vec; }
 
   // Spherical linear interpolation to `pose_to`, `t` belongs [0, 1]
-  Pose3D InterPolate(const Pose3D& pose_to, double t) const {
-    auto q_interp = q_.slerp(t, pose_to.q_);
-    auto p_interp = (pose_to.p_ - p_) * t;
+  Pose3D Interpolate(const Pose3D& pose_to, double t) const {
+    Eigen::Quaterniond q_interp = q_.slerp(t, pose_to.q_);
+    Eigen::Vector3d p_interp = (pose_to.p_ - p_) * t + p_;
     return {q_interp, p_interp};
   }
 

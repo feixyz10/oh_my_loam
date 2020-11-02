@@ -10,12 +10,12 @@ extractor_config:
   vis: true
   sharp_corner_point_num: 2
   corner_point_num: 20
-  flat_surf_point_num: 3
+  flat_surf_point_num: 4
   surf_point_num: 3 ## useless currently
   corner_point_curvature_thres: 0.5
   surf_point_curvature_thres: 0.5
   neighbor_point_dist_thres: 0.05
-  downsample_voxel_size: 0.5
+  downsample_voxel_size: 0.3
 
 odometry_config: 
   icp_iter_num : 2

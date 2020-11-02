@@ -3,7 +3,7 @@
 namespace oh_my_loam {
 
 Pose3D Interpolate(const Pose3D& pose_from, const Pose3D& pose_to, double t) {
-  return pose_from.InterPolate(pose_to, t);
+  return pose_from.Interpolate(pose_to, t);
 }
 
 Pose3D operator*(const Pose3D& lhs, const Pose3D& rhs) {

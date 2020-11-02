@@ -72,13 +72,15 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
   AWARN << "Pose increase: " << pose_curr2last_.ToString();
   AWARN << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(feature);
-  AINFO << "Time elapsed (ms): whole odometry = " << timer_whole.toc();
+  AUSER << "Time elapsed (ms): whole odometry = " << timer_whole.toc();
 }
 
 void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointLinePair>* const pairs,
                                double dist_sq_thresh) const {
-  for (const auto& query_pt : src) {
+  for (const auto& q_pt : src) {
+    TPoint query_pt;
+    TransformToStart(pose_curr2last_, q_pt, &query_pt);
     std::vector<int> indices;
     std::vector<float> dists;
     kdtree_corn_pts_->nearestKSearch(query_pt, 1, indices, dists);
@@ -111,7 +113,7 @@ void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
     }
     if (pt2_idx >= 0) {
       TPoint pt2 = tgt.points[pt2_idx];
-      pairs->emplace_back(query_pt, pt1, pt2);
+      pairs->emplace_back(q_pt, pt1, pt2);
     }
   }
 }
@@ -119,7 +121,9 @@ void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
 void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
                                std::vector<PointPlanePair>* const pairs,
                                double dist_sq_thresh) const {
-  for (const auto& query_pt : src) {
+  for (const auto& q_pt : src) {
+    TPoint query_pt;
+    TransformToStart(pose_curr2last_, q_pt, &query_pt);
     std::vector<int> indices;
     std::vector<float> dists;
     kdtree_surf_pts_->nearestKSearch(query_pt, 1, indices, dists);
@@ -134,7 +138,6 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
       int scan_id = GetScanId(pt);
       if (scan_id > query_pt_scan_id + kNearbyScanNum) break;
       double dist_squre = DistanceSqure(query_pt, pt);
-      // AWARN_IF(scan_id != 0) << "SA" << query_pt_scan_id << ", " << scan_id;
       if (scan_id == query_pt_scan_id && dist_squre < min_dist_pt2_squre) {
         pt2_idx = i;
         min_dist_pt2_squre = dist_squre;
@@ -150,7 +153,6 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
       int scan_id = GetScanId(pt);
       if (scan_id < query_pt_scan_id - kNearbyScanNum) break;
       double dist_squre = DistanceSqure(query_pt, pt);
-      // AWARN_IF(scan_id != 0) << "SD" << query_pt_scan_id << ", " << scan_id;
       if (scan_id == query_pt_scan_id && dist_squre < min_dist_pt2_squre) {
         pt2_idx = i;
         min_dist_pt2_squre = dist_squre;
@@ -163,14 +165,29 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
     }
     if (pt2_idx >= 0 && pt3_idx >= 0) {
       TPoint pt2 = tgt.points[pt2_idx], pt3 = tgt.points[pt3_idx];
-      pairs->emplace_back(query_pt, pt1, pt2, pt3);
+      pairs->emplace_back(q_pt, pt1, pt2, pt3);
     }
   }
 }
 
 void Odometry::UpdatePre(const FeaturePoints& feature) {
-  surf_pts_pre_ = feature.less_flat_surf_pts;
-  corn_pts_pre_ = feature.less_sharp_corner_pts;
+  if (surf_pts_pre_ == nullptr) {
+    surf_pts_pre_.reset(new TPointCloud);
+  }
+  if (corn_pts_pre_ == nullptr) {
+    corn_pts_pre_.reset(new TPointCloud);
+  }
+
+  surf_pts_pre_->resize(feature.less_flat_surf_pts->size());
+  for (size_t i = 0; i < feature.less_flat_surf_pts->size(); ++i) {
+    TransformToEnd(pose_curr2last_, feature.less_flat_surf_pts->points[i],
+                   &surf_pts_pre_->points[i]);
+  }
+  corn_pts_pre_->resize(feature.less_sharp_corner_pts->size());
+  for (size_t i = 0; i < feature.less_sharp_corner_pts->size(); ++i) {
+    TransformToEnd(pose_curr2last_, feature.less_sharp_corner_pts->points[i],
+                   &corn_pts_pre_->points[i]);
+  }
   kdtree_surf_pts_->setInputCloud(surf_pts_pre_);
   kdtree_corn_pts_->setInputCloud(corn_pts_pre_);
 }

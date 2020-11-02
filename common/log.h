@@ -6,24 +6,41 @@
 #include <g3log/logworker.hpp>
 #include <iostream>
 
+// heere we define G3LOG instead of use LOG directly, since LOG macro in g3log
+// is conflict with LOG macro in glog. Same for G3LOG_IF and G3CHECK
+#define G3LOG(level)          \
+  if (!g3::logLevel(level)) { \
+  } else                      \
+  INTERNAL_LOG_MESSAGE(level).stream()
+
+#define G3LOG_IF(level, boolean_expression)                    \
+  if (false == (boolean_expression) || !g3::logLevel(level)) { \
+  } else                                                       \
+  INTERNAL_LOG_MESSAGE(level).stream()
+
+#define G3CHECK(boolean_expression)   \
+  if (true == (boolean_expression)) { \
+  } else                              \
+  INTERNAL_CONTRACT_MESSAGE(#boolean_expression).stream()
+
 const LEVELS ERROR{WARNING.value + 100, "ERROR"};
 const LEVELS USER(ERROR.value + 100, "USER");
 
-#define ADEBUG LOG(DEBUG)
-#define AINFO LOG(INFO)
-#define AWARN LOG(WARNING)
-#define AERROR LOG(ERROR)
-#define AUSER LOG(USER)
-#define AFATAL LOG(FATAL)
+#define ADEBUG G3LOG(DEBUG)
+#define AINFO G3LOG(INFO)
+#define AWARN G3LOG(WARNING)
+#define AERROR G3LOG(ERROR)
+#define AUSER G3LOG(USER)
+#define AFATAL G3LOG(FATAL)
 
 // LOG_IF
-#define ADEBUG_IF(cond) LOG_IF(DEBUG, cond)
-#define AINFO_IF(cond) LOG_IF(INFO, cond)
-#define AWARN_IF(cond) LOG_IF(WARNING, cond)
-#define AERROR_IF(cond) LOG_IF(ERROR, cond)
-#define AUSER_IF(cond) LOG_IF(USER, cond)
-#define AFATAL_IF(cond) LOG_IF(FATAL, cond)
-#define ACHECK(cond) CHECK(cond)
+#define ADEBUG_IF(cond) G3LOG_IF(DEBUG, cond)
+#define AINFO_IF(cond) G3LOG_IF(INFO, cond)
+#define AWARN_IF(cond) G3LOG_IF(WARNING, cond)
+#define AERROR_IF(cond) G3LOG_IF(ERROR, cond)
+#define AUSER_IF(cond) G3LOG_IF(USER, cond)
+#define AFATAL_IF(cond) G3LOG_IF(FATAL, cond)
+#define ACHECK(cond) G3CHECK(cond)
 
 namespace g3 {
 class CustomSink {

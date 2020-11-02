@@ -46,7 +46,12 @@ using TCTPointCloudConstPtr = TCTPointCloud::ConstPtr;
 
 struct PointXYZT {
   PCL_ADD_POINT4D;
-  float time;
+  union EIGEN_ALIGN16 {
+    float time;
+    // make sure VoxelGrid can work with this custom point type:
+    // https://github.com/PointCloudLibrary/pcl/issues/2331
+    float intensity;
+  };
 
   PointXYZT() {
     x = y = z = 0.0f;

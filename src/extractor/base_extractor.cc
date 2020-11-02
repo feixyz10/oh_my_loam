@@ -47,8 +47,8 @@ void Extractor::Process(const PointCloud& cloud, FeaturePoints* const feature) {
   AINFO << "Time elapsed (ms): scan_split = " << std::setprecision(3)
         << time_split << ", curvature_compute = " << time_curv - time_split
         << ", type_assign = " << time_assign - time_curv
-        << ", store = " << time_store - time_assign
-        << ", TOTAL = " << time_store;
+        << ", store = " << time_store - time_assign;
+  AUSER << "Time elapsed (ms): whole extraction = " << time_store;
   if (is_vis_) Visualize(cloud, *feature);
 }
 
@@ -181,15 +181,14 @@ void Extractor::SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
 
 void Extractor::GenerateFeaturePoints(const TCTPointCloud& scan,
                                       FeaturePoints* const feature) const {
-  // TPointCloudPtr less_flat_surf_pts(new TPointCloud);
+  TPointCloudPtr less_flat_surf_pts(new TPointCloud);
   for (const auto& pt : scan.points) {
     switch (pt.type) {
       case PointType::FLAT:
         feature->flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z, pt.time);
       // no break: FLAT points are also LESS_FLAT
       case PointType::LESS_FLAT:
-        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z,
-                                                         pt.time);
+        less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z, pt.time);
         break;
       case PointType::SHARP:
         feature->sharp_corner_pts->points.emplace_back(pt.x, pt.y, pt.z,
@@ -201,16 +200,14 @@ void Extractor::GenerateFeaturePoints(const TCTPointCloud& scan,
         break;
       default:
         // all the rest are also LESS_FLAT
-        feature->less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z,
-                                                         pt.time);
+        less_flat_surf_pts->points.emplace_back(pt.x, pt.y, pt.z, pt.time);
         break;
     }
   }
-  // TPointCloudPtr filtered_less_flat_surf_pts(new TPointCloud);
-  // VoxelDownSample<TPoint>(less_flat_surf_pts,
-  // filtered_less_flat_surf_pts.get(),
-  //                         config_["downsample_voxel_size"].as<double>());
-  // *feature->less_flat_surf_pts += *filtered_less_flat_surf_pts;
+  TPointCloudPtr filtered_less_flat_surf_pts(new TPointCloud);
+  VoxelDownSample<TPoint>(less_flat_surf_pts, filtered_less_flat_surf_pts.get(),
+                          config_["downsample_voxel_size"].as<double>());
+  *feature->less_flat_surf_pts += *filtered_less_flat_surf_pts;
 }
 
 void Extractor::Visualize(const PointCloud& cloud,
