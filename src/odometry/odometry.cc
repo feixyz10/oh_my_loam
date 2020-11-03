@@ -13,12 +13,15 @@ bool Odometry::Init(const YAML::Node& config) {
   config_ = config;
   kdtree_surf_pts_.reset(new pcl::KdTreeFLANN<TPoint>);
   kdtree_corn_pts_.reset(new pcl::KdTreeFLANN<TPoint>);
+  is_vis_ = Config::Instance()->Get<bool>("vis") && config_["vis"].as<bool>();
+  AINFO << "Odometry visualizer: " << (is_vis_ ? "ON" : "OFF");
+  if (is_vis_) visualizer_.reset(new OdometryVisualizer);
   return true;
 }
 
 void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
-  if (!is_initialized) {
-    is_initialized = true;
+  if (!is_initialized_) {
+    is_initialized_ = true;
     UpdatePre(feature);
     *pose = pose_curr2world_;
     AWARN << "Odometry initialized....";
@@ -27,10 +30,10 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
   TicToc timer_whole;
   double match_dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   AINFO << "Pose before: " << pose_curr2world_.ToString();
+  std::vector<PointLinePair> pl_pairs;
+  std::vector<PointPlanePair> pp_pairs;
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
     TicToc timer;
-    std::vector<PointLinePair> pl_pairs;
-    std::vector<PointPlanePair> pp_pairs;
     MatchCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
                     match_dist_sq_thresh);
     double time_pl_match = timer.toc();
@@ -73,6 +76,7 @@ void Odometry::Process(const FeaturePoints& feature, Pose3D* const pose) {
   AWARN << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(feature);
   AUSER << "Time elapsed (ms): whole odometry = " << timer_whole.toc();
+  if (is_vis_) Visualize(feature, pl_pairs, pp_pairs);
 }
 
 void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
@@ -190,6 +194,17 @@ void Odometry::UpdatePre(const FeaturePoints& feature) {
   }
   kdtree_surf_pts_->setInputCloud(surf_pts_pre_);
   kdtree_corn_pts_->setInputCloud(corn_pts_pre_);
+}
+
+void Odometry::Visualize(const FeaturePoints& feature,
+                         const std::vector<PointLinePair>& pl_pairs,
+                         const std::vector<PointPlanePair>& pp_pairs) const {
+  std::shared_ptr<OdometryVisFrame> frame(new OdometryVisFrame);
+  frame->pl_pairs = pl_pairs;
+  frame->pp_pairs = pp_pairs;
+  frame->pose_curr2last = pose_curr2last_;
+  frame->pose_curr2world = pose_curr2world_;
+  visualizer_->Render(frame);
 }
 
 }  // namespace oh_my_loam

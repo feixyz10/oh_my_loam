@@ -6,8 +6,8 @@
 #include <g3log/logworker.hpp>
 #include <iostream>
 
-// heere we define G3LOG instead of use LOG directly, since LOG macro in g3log
-// is conflict with LOG macro in glog. Same for G3LOG_IF and G3CHECK
+// here we define G3LOG instead of use LOG directly, since LOG macro in g3log
+// conflicts LOG macro in glog. Same for G3LOG_IF and G3CHECK
 #define G3LOG(level)          \
   if (!g3::logLevel(level)) { \
   } else                      \

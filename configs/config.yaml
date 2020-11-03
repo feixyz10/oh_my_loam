@@ -7,7 +7,7 @@ vis: true
 # configs for feature points extractor
 extractor_config:
   min_point_num: 66
-  vis: true
+  vis: false
   sharp_corner_point_num: 2
   corner_point_num: 20
   flat_surf_point_num: 4
@@ -20,4 +20,4 @@ extractor_config:
 odometry_config: 
   icp_iter_num : 2
   match_dist_sq_thresh: 1
-  vis: false
+  vis: true

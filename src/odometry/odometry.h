@@ -1,6 +1,7 @@
 #pragma once
 
-#include <extractor/feature_points.h>
+#include "extractor/feature_points.h"
+#include "visualizer/odometry_visualizer.h"
 
 #include "common.h"
 #include "helper/helper.h"
@@ -18,6 +19,7 @@ class Odometry {
 
  protected:
   void UpdatePre(const FeaturePoints& feature);
+
   void MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
                        std::vector<PointLinePair>* const pairs,
                        double dist_sq_thresh) const;
@@ -25,6 +27,10 @@ class Odometry {
   void MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
                        std::vector<PointPlanePair>* const pairs,
                        double dist_sq_thresh) const;
+
+  void Visualize(const FeaturePoints& feature,
+                 const std::vector<PointLinePair>& pl_pairs,
+                 const std::vector<PointPlanePair>& pp_pairs) const;
 
   Pose3D pose_curr2world_;
   Pose3D pose_curr2last_;
@@ -35,8 +41,11 @@ class Odometry {
   pcl::KdTreeFLANN<TPoint>::Ptr kdtree_surf_pts_{nullptr};
   pcl::KdTreeFLANN<TPoint>::Ptr kdtree_corn_pts_{nullptr};
 
-  bool is_initialized = false;
+  bool is_initialized_ = false;
+  bool is_vis_ = false;
   YAML::Node config_;
+
+  std::unique_ptr<OdometryVisualizer> visualizer_{nullptr};
 
   DISALLOW_COPY_AND_ASSIGN(Odometry)
 };

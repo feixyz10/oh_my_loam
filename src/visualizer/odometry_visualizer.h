@@ -1,12 +1,17 @@
 #pragma once
 
 #include "base_visualizer.h"
-#include "extractor/feature_points.h"
+#include "helper/helper.h"
 
 namespace oh_my_loam {
 
 struct OdometryVisFrame : public VisFrame {
-  FeaturePoints feature_pts;
+  TPointCloudPtr surf_pts;
+  TPointCloudPtr corn_pts;
+  std::vector<PointLinePair> pl_pairs;
+  std::vector<PointPlanePair> pp_pairs;
+  Pose3D pose_curr2last;
+  Pose3D pose_curr2world;
 };
 
 class OdometryVisualizer : public Visualizer {
@@ -17,6 +22,7 @@ class OdometryVisualizer : public Visualizer {
 
  private:
   void Draw() override;
+  std::deque<Pose3D> poses_;
 };
 
 }  // namespace oh_my_loam

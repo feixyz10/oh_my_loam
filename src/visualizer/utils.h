@@ -28,4 +28,10 @@ void DrawPointCloud(const pcl::PointCloud<PointT>& cloud,
       pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pt_size, id);
 }
 
+template <typename PointT>
+void DrawLine(const PointT& pt1, const PointT& pt2, const Color& color,
+              const std::string& id, PCLVisualizer* const viewer) {
+  viewer->addLine(pt1, pt2, color.r, color.g, color.b, id);
+}
+
 }  // namespace oh_my_loam
