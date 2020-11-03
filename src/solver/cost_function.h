@@ -15,7 +15,7 @@ class PointLineCostFunction {
   bool operator()(const T* const q, const T* const p, T* residual) const;
 
   static ceres::CostFunction* Create(const PointLinePair& pair, double time) {
-    return new ceres::AutoDiffCostFunction<PointLineCostFunction, 1, 4, 3>(
+    return new ceres::AutoDiffCostFunction<PointLineCostFunction, 3, 4, 3>(
         new PointLineCostFunction(pair, time));
   }
 
@@ -60,9 +60,11 @@ bool PointLineCostFunction::operator()(const T* const q, const T* const p,
   Eigen::Matrix<T, 3, 1> pnt_n = r * pnt + t;
 
   // norm of cross product: triangle area x 2
-  T area = (pnt_n - pnt1).cross(pnt2 - pnt1).norm() * 0.5;
+  Eigen::Matrix<T, 3, 1> area = (pnt_n - pnt1).cross(pnt_n - pnt2) * 0.5;
   T base_length = (pnt2 - pnt1).norm();
-  residual[0] = area / base_length;
+  residual[0] = area[0] / base_length;
+  residual[1] = area[1] / base_length;
+  residual[2] = area[2] / base_length;
   return true;
 }
 

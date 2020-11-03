@@ -1,6 +1,7 @@
 add_subdirectory(extractor)
 add_subdirectory(visualizer)
 add_subdirectory(odometry)
+add_subdirectory(mapper)
 add_subdirectory(helper)
 add_subdirectory(solver)
 
