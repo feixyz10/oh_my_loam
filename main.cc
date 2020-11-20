@@ -1,3 +1,4 @@
+#include <pcl/io/pcd_io.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -44,6 +45,7 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam) {
   PointCloud cloud;
   pcl::fromROSMsg(*msg, cloud);
-  AINFO << "Timestamp = " << LOG_TIMESTAMP(msg->header.stamp.toSec());
-  slam->Run(cloud, 0.0);
+  double timestamp = msg->header.stamp.toSec();
+  AINFO << "Timestamp = " << LOG_TIMESTAMP(timestamp);
+  slam->Run(cloud, timestamp);
 }
