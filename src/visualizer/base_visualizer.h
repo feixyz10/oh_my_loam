@@ -60,7 +60,7 @@ class Visualizer {
     is_updated_ = true;
   }
 
-  std::string Name() { return name_; }
+  std::string Name() const { return name_; }
 
  protected:
   void Run() {
@@ -75,15 +75,10 @@ class Visualizer {
   }
 
   /**
-   * @brief Draw objects. This method should be overrided for customization.
-   *
+   * @brief Draw objects, pure virtual function. Example code:
    * virtual void Draw() {
    *   auto frame = GetCurrentFrame<VisFrame>();
-   *   {  // Update cloud
-   *     std::string id = "point cloud";
-   *     DrawPointCloud(*frame.cloud, {255, 255, 255}, id, viewer_.get());
-   *     rendered_cloud_ids_.push_back(id);
-   *   }
+   *   AddPointCloud(frame.cloud, {255, 255, 255}, "point cloud");
    * }
    */
   virtual void Draw() = 0;
@@ -132,6 +127,22 @@ class Visualizer {
   FrameT GetCurrentFrame() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return *static_cast<FrameT *>((*curr_frame_iter_).get());
+  }
+
+  template <typename PointType>
+  void DrawPointCloud(
+      const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
+      const Color &color, const std::string &id, int point_size = 3) {
+    AddPointCloud<PointType>(cloud, color, id, viewer_.get(), point_size);
+    rendered_cloud_ids_.push_back(id);
+  }
+
+  template <typename PointType>
+  void DrawPointCloud(
+      const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
+      const std::string &field, const std::string &id, int point_size = 3) {
+    AddPointCloud<PointType>(cloud, field, id, viewer_.get(), point_size);
+    rendered_cloud_ids_.push_back(id);
   }
 
   // visualizer name
