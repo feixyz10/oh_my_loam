@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>

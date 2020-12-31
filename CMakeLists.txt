@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.15)
 project(oh_my_loam)
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -lpthread")
@@ -26,7 +26,6 @@ find_package(catkin REQUIRED COMPONENTS
 include_directories(SYSTEM
 	${catkin_INCLUDE_DIRS} 
   ${PCL_INCLUDE_DIRS}
-  ${CERES_INCLUDE_DIRS}
   ${G3LOG_INCLUDE_DIRS}
 )
 
@@ -53,7 +52,6 @@ target_link_libraries(main
   ${PCL_LIBRARIES}
   ${G3LOG_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
-  g3log
   common
   oh_my_loam
   extractor

@@ -9,6 +9,7 @@ void InitG3Logging(bool log_to_file, const std::string& prefix,
   worker->addSink(std::make_unique<g3::CustomSink>(),
                   &g3::CustomSink::StdLogMessage);
   if (log_to_file) {
+    std::filesystem::create_directories(path);
     std::ostringstream oss;
     oss << path;
     if (*path.rbegin() != '/') oss << '/';
