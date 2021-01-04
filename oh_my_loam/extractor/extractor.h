@@ -19,7 +19,7 @@ class Extractor {
   int num_scans() const { return num_scans_; }
 
  protected:
-  virtual int GetScanID(const Point& pt) const = 0;
+  virtual int GetScanID(const common::Point& pt) const = 0;
 
   YAML::Node config_;
 

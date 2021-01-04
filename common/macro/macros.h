@@ -5,8 +5,7 @@
 #include <mutex>
 
 // format timestamp
-#define FMT_TIMESTAMP(timestamp) \
-  std::fixed << std::setprecision(3) << timestamp;
+#define FMT_TIMESTAMP(timestamp) std::fixed << std::setprecision(3) << timestamp
 
 #define DISALLOW_COPY_AND_ASSIGN(classname) \
   classname(const classname &) = delete;    \

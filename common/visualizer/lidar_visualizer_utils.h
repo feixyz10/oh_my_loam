@@ -2,6 +2,7 @@
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/point_cloud_handlers.h>
+
 #include <pcl/visualization/impl/pcl_visualizer.hpp>
 #include <pcl/visualization/impl/point_cloud_geometry_handlers.hpp>
 #include <string>

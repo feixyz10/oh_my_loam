@@ -71,6 +71,6 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(
   (float, y, y)
   (float, z, z)
   (float, time, time)
-  // (float, intensity, intensity)
+  (float, intensity, intensity)
 )
 // clang-format on

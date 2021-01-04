@@ -73,7 +73,7 @@ class LidarVisualizer {
    */
   virtual void Draw() {
     auto frame = GetCurrentFrame<LidarVisFrame>();
-    DrawPointCloud(frame.cloud, {255, 255, 255}, "point cloud");
+    DrawPointCloud<Point>(frame.cloud, WHITE, "point cloud");
   }
 
   /**

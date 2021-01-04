@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
 project(oh_my_loam)
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -lpthread")

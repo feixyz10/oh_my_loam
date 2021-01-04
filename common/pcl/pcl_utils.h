@@ -1,6 +1,6 @@
 #pragma once
 
-#include "log/log.h"
+#include "common/log/log.h"
 #include "pcl_types.h"
 
 namespace common {
@@ -38,16 +38,16 @@ inline double IsFinite(const PointType& pt) {
 
 // Remove point if the condition evaluated to true on it
 template <typename PointType>
-void RemovePoints(const typename pcl::PointCloud<PointType>::ConstPtr cloud_in,
+void RemovePoints(const pcl::PointCloud<PointType>& cloud_in,
                   std::function<bool(const PointType&)> check,
                   pcl::PointCloud<PointType>* const cloud_out) {
-  if (cloud_in.get() != cloud_out) {
+  if (&cloud_in != cloud_out) {
     cloud_out->header = cloud_in.header;
-    cloud_out->resize(cloud_in->size());
+    cloud_out->resize(cloud_in.size());
   }
   size_t j = 0;
-  for (size_t i = 0; i < cloud_in->size(); ++i) {
-    const auto pt = cloud_in->points[i];
+  for (size_t i = 0; i < cloud_in.size(); ++i) {
+    const auto pt = cloud_in.points[i];
     if (check(pt)) continue;
     cloud_out->points[j++] = pt;
   }

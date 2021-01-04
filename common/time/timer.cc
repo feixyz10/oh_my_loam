@@ -1,4 +1,5 @@
 #include "timer.h"
+
 #include "common/log/log.h"
 
 namespace common {
@@ -18,10 +19,10 @@ double Timer::Toc(char unit) {
 TimerWrapper::~TimerWrapper() {
   double duration = timer_.Toc();
   if (duration_ms_ < 0) {
-    AINFO << msg_ << ": time elapsed (ms): " << FMT_TIMESTAMP(duration);
+    AINFO << msg_ << ": time elapsed: " << FMT_TIMESTAMP(duration) << " ms";
   }
   if (duration_ms_ > 0 && duration > duration_ms_) {
-    AWARN << msg_ << ": time elapsed (ms): " << FMT_TIMESTAMP(duration);
+    AWARN << msg_ << ": time elapsed: " << FMT_TIMESTAMP(duration) << " ms";
   }
 }
 

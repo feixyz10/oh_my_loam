@@ -1,8 +1,9 @@
 #include "extractor.h"
 
-#include "base/helper.h"
-
 #include <cmath>
+
+#include "base/helper.h"
+#include "common/pcl/pcl_utils.h"
 
 namespace oh_my_loam {
 
@@ -35,12 +36,12 @@ void Extractor::Process(const PointCloudConstPtr& cloud,
   SplitScan(*cloud, &scans);
   // compute curvature for each point in each scan
   for (auto& scan : scans) {
-    ComputePointCurvature(&scan);
+    ComputeCurvature(&scan);
   }
   // assign type to each point in each scan: FLAT, LESS_FLAT,
   // NORMAL, LESS_SHARP or SHARP
   for (auto& scan : scans) {
-    AssignPointType(&scan);
+    AssignType(&scan);
   }
   // store points into feature point clouds according to their type
   for (const auto& scan : scans) {
@@ -89,9 +90,9 @@ void Extractor::ComputeCurvature(TCTPointCloud* const scan) const {
                pts[i + 4].z + pts[i + 5].z - 10 * pts[i].z;
     pts[i].curvature = std::sqrt(dx * dx + dy * dy + dz * dz);
   }
-  RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint& pt) {
-    return !std::isfinite(pt.curvature);
-  });
+  RemovePoints<TCTPoint>(
+      *scan, [](const TCTPoint& pt) { return !std::isfinite(pt.curvature); },
+      scan);
   AINFO_IF(verbose_) << "Extractor::ComputeCurvature: "
                      << FMT_TIMESTAMP(timer.Toc()) << " ms";
 }
@@ -126,9 +127,9 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
           scan->at(ix).curvature > corner_point_curvature_thres) {
         ++corner_pt_picked_num;
         if (corner_pt_picked_num <= sharp_corner_point_num) {
-          scan->at(ix).type = PointType::SHARP;
+          scan->at(ix).type = Type::SHARP;
         } else if (corner_pt_picked_num <= corner_point_num) {
-          scan->at(ix).type = PointType::LESS_SHARP;
+          scan->at(ix).type = Type::LESS_SHARP;
         } else {
           break;
         }
@@ -144,9 +145,9 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
           scan->at(ix).curvature < surf_point_curvature_thres) {
         ++surf_pt_picked_num;
         if (surf_pt_picked_num <= flat_surf_point_num) {
-          scan->at(ix).type = PointType::FLAT;
+          scan->at(ix).type = Type::FLAT;
         } else if (surf_pt_picked_num <= surf_point_num) {
-          scan->at(ix).type = PointType::LESS_FLAT;
+          scan->at(ix).type = Type::LESS_FLAT;
         } else {
           break;
         }
@@ -164,18 +165,18 @@ void Extractor::GenerateFeature(const TCTPointCloud& scan,
   Timer timer;
   TPointCloudPtr cloud_less_flat_surf(new TPointCloud);
   for (const auto& pt : scan.points) {
-    TPoint point(pt.x, pt, y, pt.z, pt.time);
+    TPoint point(pt.x, pt.y, pt.z, pt.time);
     switch (pt.type) {
-      case PointType::FLAT:
+      case Type::FLAT:
         feature->cloud_flat_surf->points.emplace_back(point);
       // no break: FLAT points are also LESS_FLAT
-      case PointType::LESS_FLAT:
+      case Type::LESS_FLAT:
         cloud_less_flat_surf->points.emplace_back(point);
         break;
-      case PointType::SHARP:
+      case Type::SHARP:
         feature->cloud_sharp_corner->points.emplace_back(point);
       // no break: SHARP points are also LESS_SHARP
-      case PointType::LESS_SHARP:
+      case Type::LESS_SHARP:
         feature->cloud_less_sharp_corner->points.emplace_back(point);
         break;
       default:
@@ -196,7 +197,7 @@ void Extractor::Visualize(const PointCloudConstPtr& cloud,
                           const Feature& feature, double timestamp) {
   std::shared_ptr<ExtractorVisFrame> frame(new ExtractorVisFrame);
   frame->timestamp = timestamp;
-  frame->cloud = cloud;
+  frame->cloud = cloud->makeShared();
   frame->feature = feature;
   visualizer_->Render(frame);
 }

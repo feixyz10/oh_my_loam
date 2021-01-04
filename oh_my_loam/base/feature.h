@@ -10,7 +10,7 @@ struct Feature {
   common::TPointCloudPtr cloud_flat_surf;
   common::TPointCloudPtr cloud_less_flat_surf;
 
-  FeaturePoints() {
+  Feature() {
     cloud_sharp_corner.reset(new common::TPointCloud);
     cloud_less_sharp_corner.reset(new common::TPointCloud);
     cloud_flat_surf.reset(new common::TPointCloud);
