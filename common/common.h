@@ -1,11 +1,8 @@
 #pragma once
 
-#include "color.h"
-#include "config.h"
-#include "log.h"
-#include "macros.h"
-#include "pose.h"
-#include "tic_toc.h"
-#include "types.h"
-#include "utils.h"
-#include "yaml-cpp/yaml.h"
+#include "color/color.h"
+#include "config/yaml_config.h"
+#include "log/log.h"
+#include "macro/macros.h"
+#include "math/math_utils.h"
+#include "time/timer.h"
