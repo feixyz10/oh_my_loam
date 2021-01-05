@@ -27,25 +27,16 @@ void TransformPoint(const Pose3d& pose, const PointType& pt_in,
  * @brief Transform a lidar point to the start of the scan
  *
  * @param pose Relative pose, end scan time w.r.t. start scan time
- * @param time Point time relative to the start time of the scan, \in [0, 1]
  */
 void TransformToStart(const Pose3d& pose, const TPoint& pt_in,
-                      TPoint* const pt_out) {
-  Pose3d pose_interp = Pose3d().Interpolate(pose, GetTime(pt_in));
-  TransformPoint<TPoint>(pose_interp, pt_in, pt_out);
-}
-
+                      TPoint* const pt_out);
 /**
  * @brief Transform a lidar point to the end of the scan
  *
  * @param pose Relative pose, end scan time w.r.t. start scan time
- * @param time Point time relative to the start time of the scan, \in [0, 1]
  */
 void TransformToEnd(const Pose3d& pose, const TPoint& pt_in,
-                    TPoint* const pt_out) {
-  TransformToStart(pose, pt_in, pt_out);
-  TransformPoint<TPoint>(pose.Inv(), *pt_out, pt_out);
-}
+                    TPoint* const pt_out);
 
 struct PointLinePair {
   TPoint pt;

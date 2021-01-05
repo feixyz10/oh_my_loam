@@ -1,51 +1,49 @@
-#include "odometry.h"
+#include "odometer.h"
 
-#include "solver/solver.h"
+#include "common/pcl/pcl_utils.h"
+#include "oh_my_loam/solver/solver.h"
 
 namespace oh_my_loam {
 
 namespace {
 int kNearbyScanNum = 2;
 size_t kMinMatchNum = 10;
+using namespace common;
 }  // namespace
 
-bool Odometry::Init(const YAML::Node& config) {
-  config_ = config;
-  kdtree_surf_pts_.reset(new pcl::KdTreeFLANN<TPoint>);
-  kdtree_corn_pts_.reset(new pcl::KdTreeFLANN<TPoint>);
-  is_vis_ = Config::Instance()->Get<bool>("vis") && config_["vis"].as<bool>();
-  AINFO << "Odometry visualizer: " << (is_vis_ ? "ON" : "OFF");
-  if (is_vis_) visualizer_.reset(new OdometryVisualizer);
+bool Odometer::Init() {
+  const auto& config = YAMLConfig::Instance()->config();
+  config_ = config["odometer_config"];
+  is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
+  verbose_ = config_["verbose"].as<bool>();
+  kdtree_surf_.reset(new pcl::KdTreeFLANN<TPoint>);
+  kdtree_corn_.reset(new pcl::KdTreeFLANN<TPoint>);
+  AINFO << "Odometer visualizer: " << (is_vis_ ? "ON" : "OFF");
+  if (is_vis_) visualizer_.reset(new OdometerVisualizer);
   return true;
 }
 
-void Odometry::Process(const FeaturePoints& feature, Pose3d* const pose) {
+void Odometer::Process(const Feature& feature, Pose3d* const pose) {
+  BLOCK_TIMER_START;
   if (!is_initialized_) {
     is_initialized_ = true;
     UpdatePre(feature);
-    *pose = pose_curr2world_;
-    AWARN << "Odometry initialized....";
+    *pose = Pose3d();
+    AWARN << "Odometer initialized....";
     return;
   }
-  TicToc timer_whole;
-  double match_dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   AINFO << "Pose before: " << pose_curr2world_.ToString();
   std::vector<PointLinePair> pl_pairs;
   std::vector<PointPlanePair> pp_pairs;
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
-    TicToc timer;
-    MatchCornPoints(*feature.sharp_corner_pts, *corn_pts_pre_, &pl_pairs,
-                    match_dist_sq_thresh);
-    double time_pl_match = timer.toc();
+    MatchCornFeature(*feature.cloud_sharp_corner, *corn_pre_, &pl_pairs);
     AINFO_IF(i == 0) << "PL mathch: src size = "
-                     << feature.sharp_corner_pts->size()
-                     << ", tgt size = " << corn_pts_pre_->size();
-    MatchSurfPoints(*feature.flat_surf_pts, *surf_pts_pre_, &pp_pairs,
-                    match_dist_sq_thresh);
-    double timer_pp_match = timer.toc();
+                     << feature.cloud_sharp_corner->size()
+                     << ", tgt size = " << corn_pre_->size();
+    MatchSurfFeature(*feature.cloud_flat_surf, *surf_pre_, &pp_pairs);
     AINFO_IF(i == 0) << "PP mathch: src size = "
-                     << feature.flat_surf_pts->size()
-                     << ", tgt size = " << surf_pts_pre_->size();
+                     << feature.cloud_flat_surf->size()
+                     << ", tgt size = " << surf_pre_->size();
     AINFO << "Matched num, pl = " << pl_pairs.size()
           << ", pp = " << pp_pairs.size();
     if (pl_pairs.size() + pp_pairs.size() < kMinMatchNum) {
@@ -65,29 +63,25 @@ void Odometry::Process(const FeaturePoints& feature, Pose3d* const pose) {
     }
     solver.Solve();
     pose_curr2last_ = Pose3d(q, p);
-    double time_solve = timer.toc();
-    AINFO << "Time elapsed (ms), pl_match = " << time_pl_match
-          << ", pp_match = " << timer_pp_match - time_pl_match
-          << ", solve = " << time_solve - timer_pp_match;
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
   *pose = pose_curr2world_;
   AWARN << "Pose increase: " << pose_curr2last_.ToString();
   AWARN << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(feature);
-  AUSER << "Time elapsed (ms): whole odometry = " << timer_whole.toc();
+  AINFO << "Odometer::Porcess: " << BLOCK_TIMER_STOP_FMT;
   if (is_vis_) Visualize(feature, pl_pairs, pp_pairs);
 }
 
-void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
-                               std::vector<PointLinePair>* const pairs,
-                               double dist_sq_thresh) const {
+void Odometer::MatchCornFeature(const TPointCloud& src, const TPointCloud& tgt,
+                                std::vector<PointLinePair>* const pairs) const {
+  double dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   for (const auto& q_pt : src) {
     TPoint query_pt;
     TransformToStart(pose_curr2last_, q_pt, &query_pt);
     std::vector<int> indices;
     std::vector<float> dists;
-    kdtree_corn_pts_->nearestKSearch(query_pt, 1, indices, dists);
+    kdtree_corn_->nearestKSearch(query_pt, 1, indices, dists);
     if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = tgt.points[indices[0]];
     int pt2_idx = -1;
@@ -122,15 +116,16 @@ void Odometry::MatchCornPoints(const TPointCloud& src, const TPointCloud& tgt,
   }
 }
 
-void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
-                               std::vector<PointPlanePair>* const pairs,
-                               double dist_sq_thresh) const {
+void Odometer::MatchSurfFeature(
+    const TPointCloud& src, const TPointCloud& tgt,
+    std::vector<PointPlanePair>* const pairs) const {
+  double dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
   for (const auto& q_pt : src) {
     TPoint query_pt;
     TransformToStart(pose_curr2last_, q_pt, &query_pt);
     std::vector<int> indices;
     std::vector<float> dists;
-    kdtree_surf_pts_->nearestKSearch(query_pt, 1, indices, dists);
+    kdtree_surf_->nearestKSearch(query_pt, 1, indices, dists);
     if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = tgt.points[indices[0]];
     int pt2_idx = -1, pt3_idx = -1;
@@ -174,32 +169,32 @@ void Odometry::MatchSurfPoints(const TPointCloud& src, const TPointCloud& tgt,
   }
 }
 
-void Odometry::UpdatePre(const FeaturePoints& feature) {
-  if (surf_pts_pre_ == nullptr) {
-    surf_pts_pre_.reset(new TPointCloud);
+void Odometer::UpdatePre(const Feature& feature) {
+  if (!surf_pre_) {
+    surf_pre_.reset(new TPointCloud);
   }
-  if (corn_pts_pre_ == nullptr) {
-    corn_pts_pre_.reset(new TPointCloud);
+  if (!corn_pre_) {
+    corn_pre_.reset(new TPointCloud);
   }
 
-  surf_pts_pre_->resize(feature.less_flat_surf_pts->size());
-  for (size_t i = 0; i < feature.less_flat_surf_pts->size(); ++i) {
-    TransformToEnd(pose_curr2last_, feature.less_flat_surf_pts->points[i],
-                   &surf_pts_pre_->points[i]);
+  surf_pre_->resize(feature.cloud_less_flat_surf->size());
+  for (size_t i = 0; i < feature.cloud_less_flat_surf->size(); ++i) {
+    TransformToEnd(pose_curr2last_, feature.cloud_less_flat_surf->points[i],
+                   &surf_pre_->points[i]);
   }
-  corn_pts_pre_->resize(feature.less_sharp_corner_pts->size());
-  for (size_t i = 0; i < feature.less_sharp_corner_pts->size(); ++i) {
-    TransformToEnd(pose_curr2last_, feature.less_sharp_corner_pts->points[i],
-                   &corn_pts_pre_->points[i]);
+  corn_pre_->resize(feature.cloud_less_sharp_corner->size());
+  for (size_t i = 0; i < feature.cloud_less_sharp_corner->size(); ++i) {
+    TransformToEnd(pose_curr2last_, feature.cloud_less_sharp_corner->points[i],
+                   &corn_pre_->points[i]);
   }
-  kdtree_surf_pts_->setInputCloud(surf_pts_pre_);
-  kdtree_corn_pts_->setInputCloud(corn_pts_pre_);
+  kdtree_surf_->setInputCloud(surf_pre_);
+  kdtree_corn_->setInputCloud(corn_pre_);
 }
 
-void Odometry::Visualize(const FeaturePoints& feature,
+void Odometer::Visualize(const Feature& feature,
                          const std::vector<PointLinePair>& pl_pairs,
                          const std::vector<PointPlanePair>& pp_pairs) const {
-  std::shared_ptr<OdometryVisFrame> frame(new OdometryVisFrame);
+  std::shared_ptr<OdometerVisFrame> frame(new OdometerVisFrame);
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
   frame->pose_curr2last = pose_curr2last_;

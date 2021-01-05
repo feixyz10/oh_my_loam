@@ -2,9 +2,15 @@
 
 namespace oh_my_loam {
 
-bool Mapper::Init(const YAML::Node& config) {
-  config_ = config;
-  is_vis_ = Config::Instance()->Get<bool>("vis") && config_["vis"].as<bool>();
+namespace {
+using namespace common;
+}  // namespace
+
+bool Mapper::Init() {
+  const auto& config = YAMLConfig::Instance()->config();
+  config_ = config["mapper_config"];
+  is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
+  verbose_ = config_["vis"].as<bool>();
   AINFO << "Mapping visualizer: " << (is_vis_ ? "ON" : "OFF");
   return true;
 }

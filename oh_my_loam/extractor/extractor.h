@@ -1,9 +1,10 @@
 #pragma once
 
-#include "base/feature.h"
-#include "base/types.h"
 #include "common/common.h"
-#include "visualizer/extractor_visualizer.h"
+#include "oh_my_loam/base/feature.h"
+#include "oh_my_loam/base/helper.h"
+#include "oh_my_loam/base/types.h"
+#include "oh_my_loam/visualizer/extractor_visualizer.h"
 
 namespace oh_my_loam {
 
@@ -40,8 +41,8 @@ class Extractor {
   bool verbose_ = false;
 
  private:
-  void Visualize(const common::PointCloudConstPtr& cloud,
-                 const Feature& feature, double timestamp = 0.0);
+  void Visualize(const common::PointCloud& cloud, const Feature& feature,
+                 double timestamp = 0.0);
 
   void SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
                           std::vector<bool>* const picked) const;

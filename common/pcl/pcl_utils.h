@@ -39,8 +39,8 @@ inline double IsFinite(const PointType& pt) {
 // Remove point if the condition evaluated to true on it
 template <typename PointType>
 void RemovePoints(const pcl::PointCloud<PointType>& cloud_in,
-                  std::function<bool(const PointType&)> check,
-                  pcl::PointCloud<PointType>* const cloud_out) {
+                  pcl::PointCloud<PointType>* const cloud_out,
+                  std::function<bool(const PointType&)> check) {
   if (&cloud_in != cloud_out) {
     cloud_out->header = cloud_in.header;
     cloud_out->resize(cloud_in.size());

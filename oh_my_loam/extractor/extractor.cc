@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include "base/helper.h"
 #include "common/pcl/pcl_utils.h"
 
 namespace oh_my_loam {
@@ -25,7 +24,7 @@ bool Extractor::Init() {
 
 void Extractor::Process(const PointCloudConstPtr& cloud,
                         Feature* const feature) {
-  TIME_ELAPSED(__PRETTY_FUNCTION__);
+  BLOCK_TIMER_START;
   if (cloud->size() < config_["min_point_num"].as<size_t>()) {
     AWARN << "Too few input points: num = " << cloud->size() << " (< "
           << config_["min_point_num"].as<int>() << ")";
@@ -34,25 +33,28 @@ void Extractor::Process(const PointCloudConstPtr& cloud,
   // split point cloud int scans
   std::vector<TCTPointCloud> scans;
   SplitScan(*cloud, &scans);
+  AINFO_IF(verbose_) << "Extractor::SplitScan: " << BLOCK_TIMER_STOP_FMT;
   // compute curvature for each point in each scan
   for (auto& scan : scans) {
     ComputeCurvature(&scan);
   }
+  AINFO_IF(verbose_) << "Extractor::ComputeCurvature: " << BLOCK_TIMER_STOP_FMT;
   // assign type to each point in each scan: FLAT, LESS_FLAT,
   // NORMAL, LESS_SHARP or SHARP
   for (auto& scan : scans) {
     AssignType(&scan);
   }
+  AINFO_IF(verbose_) << "Extractor::AssignType: " << BLOCK_TIMER_STOP_FMT;
   // store points into feature point clouds according to their type
   for (const auto& scan : scans) {
     GenerateFeature(scan, feature);
   }
-  if (is_vis_) Visualize(cloud, *feature);
+  AINFO << "Extractor::Process: " << BLOCK_TIMER_STOP_FMT;
+  if (is_vis_) Visualize(*cloud, *feature);
 }
 
 void Extractor::SplitScan(const PointCloud& cloud,
                           std::vector<TCTPointCloud>* const scans) const {
-  Timer timer;
   scans->resize(num_scans_);
   double yaw_start = -atan2(cloud.points[0].y, cloud.points[0].x);
   bool half_passed = false;
@@ -70,12 +72,9 @@ void Extractor::SplitScan(const PointCloud& cloud,
     (*scans)[scan_id].points.emplace_back(
         pt.x, pt.y, pt.z, yaw_diff / kTwoPi + scan_id, std::nanf(""));
   }
-  AINFO_IF(verbose_) << "Extractor::SplitScan: " << FMT_TIMESTAMP(timer.Toc())
-                     << " ms";
 }
 
 void Extractor::ComputeCurvature(TCTPointCloud* const scan) const {
-  Timer timer;
   if (scan->size() < 20) return;
   auto& pts = scan->points;
   for (size_t i = 5; i < pts.size() - 5; ++i) {
@@ -90,15 +89,12 @@ void Extractor::ComputeCurvature(TCTPointCloud* const scan) const {
                pts[i + 4].z + pts[i + 5].z - 10 * pts[i].z;
     pts[i].curvature = std::sqrt(dx * dx + dy * dy + dz * dz);
   }
-  RemovePoints<TCTPoint>(
-      *scan, [](const TCTPoint& pt) { return !std::isfinite(pt.curvature); },
-      scan);
-  AINFO_IF(verbose_) << "Extractor::ComputeCurvature: "
-                     << FMT_TIMESTAMP(timer.Toc()) << " ms";
+  RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint& pt) {
+    return !std::isfinite(pt.curvature);
+  });
 }
 
 void Extractor::AssignType(TCTPointCloud* const scan) const {
-  Timer timer;
   int pt_num = scan->size();
   ACHECK(pt_num >= kScanSegNum);
   int seg_pt_num = (pt_num - 1) / kScanSegNum + 1;
@@ -156,13 +152,10 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
       }
     }
   }
-  AINFO_IF(verbose_) << "Extractor::AssignType: " << FMT_TIMESTAMP(timer.Toc())
-                     << " ms";
 }
 
 void Extractor::GenerateFeature(const TCTPointCloud& scan,
                                 Feature* const feature) const {
-  Timer timer;
   TPointCloudPtr cloud_less_flat_surf(new TPointCloud);
   for (const auto& pt : scan.points) {
     TPoint point(pt.x, pt.y, pt.z, pt.time);
@@ -189,15 +182,13 @@ void Extractor::GenerateFeature(const TCTPointCloud& scan,
   VoxelDownSample<TPoint>(cloud_less_flat_surf, dowm_sampled.get(),
                           config_["downsample_voxel_size"].as<double>());
   feature->cloud_less_flat_surf = dowm_sampled;
-  AINFO_IF(verbose_) << "Extractor::GenerateFeature: "
-                     << FMT_TIMESTAMP(timer.Toc()) << " ms";
 }
 
-void Extractor::Visualize(const PointCloudConstPtr& cloud,
-                          const Feature& feature, double timestamp) {
+void Extractor::Visualize(const PointCloud& cloud, const Feature& feature,
+                          double timestamp) {
   std::shared_ptr<ExtractorVisFrame> frame(new ExtractorVisFrame);
   frame->timestamp = timestamp;
-  frame->cloud = cloud->makeShared();
+  frame->cloud = cloud.makeShared();
   frame->feature = feature;
   visualizer_->Render(frame);
 }

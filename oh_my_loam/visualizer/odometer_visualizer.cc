@@ -1,9 +1,13 @@
-#include "odometry_visualizer.h"
+#include "odometer_visualizer.h"
 
 namespace oh_my_loam {
 
-void OdometryVisualizer::Draw() {
-  auto frame = GetCurrentFrame<OdometryVisFrame>();
+namespace {
+using namespace common;
+}  // namespace
+
+void OdometerVisualizer::Draw() {
+  auto frame = GetCurrentFrame<OdometerVisFrame>();
   TPointCloudPtr src_corn_pts(new TPointCloud);
   TPointCloudPtr tgt_corn_pts(new TPointCloud);
   src_corn_pts->resize(frame.pl_pairs.size());

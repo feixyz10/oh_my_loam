@@ -5,6 +5,7 @@
 #include <mutex>
 #include <thread>
 
+#include "common/macro/macros.h"
 #include "lidar_visualizer_utils.h"
 
 namespace common {
@@ -54,7 +55,7 @@ class LidarVisualizer {
     is_updated_ = true;
   }
 
-  std::string Name() const { return name_; }
+  std::string name() const { return name_; }
 
  protected:
   void Run() {
@@ -162,6 +163,8 @@ class LidarVisualizer {
 
   // viewer
   std::unique_ptr<PCLVisualizer> viewer_ = nullptr;
+
+  DISALLOW_COPY_AND_ASSIGN(LidarVisualizer);
 };
 
 }  // namespace common

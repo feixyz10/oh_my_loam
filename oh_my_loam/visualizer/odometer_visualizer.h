@@ -1,28 +1,29 @@
 #pragma once
 
 #include "common/visualizer/lidar_visualizer.h"
-#include "helper/helper.h"
+#include "oh_my_loam/base/helper.h"
 
 namespace oh_my_loam {
 
-struct OdometerVisFrame : public VisFrame {
-  TPointCloudPtr surf_pts;
-  TPointCloudPtr corn_pts;
+struct OdometerVisFrame : public common::LidarVisFrame {
+  common::TPointCloudPtr surf_pts;
+  common::TPointCloudPtr corn_pts;
   std::vector<PointLinePair> pl_pairs;
   std::vector<PointPlanePair> pp_pairs;
-  Pose3d pose_curr2last;
-  Pose3d pose_curr2world;
+  common::Pose3d pose_curr2last;
+  common::Pose3d pose_curr2world;
 };
 
-class OdometryVisualizer : public Visualizer {
+class OdometerVisualizer : public common::LidarVisualizer {
  public:
-  explicit OdometryVisualizer(const std::string &name = "OdometryVisualizer",
+  explicit OdometerVisualizer(const std::string &name = "OdometerVisualizer",
                               size_t max_history_size = 10)
-      : Visualizer(name, max_history_size) {}
+      : common::LidarVisualizer(name, max_history_size) {}
 
  private:
   void Draw() override;
-  std::deque<Pose3d> poses_;
+
+  std::deque<common::Pose3d> poses_;
 };
 
 }  // namespace oh_my_loam

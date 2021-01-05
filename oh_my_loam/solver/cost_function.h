@@ -1,8 +1,9 @@
 #pragma once
 
-#include "ceres/ceres.h"
-#include "common.h"
-#include "helper/helper.h"
+#include <ceres/ceres.h>
+
+#include "common/common.h"
+#include "oh_my_loam/base/helper.h"
 
 namespace oh_my_loam {
 

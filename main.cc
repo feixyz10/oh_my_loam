@@ -3,25 +3,29 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
+#include <filesystem>
 #include <functional>
 
-#include "common.h"
-#include "src/oh_my_loam.h"
+#include "common/common.h"
+#include "oh_my_loam/oh_my_loam.h"
 
+using namespace common;
 using namespace oh_my_loam;
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam);
 
 int main(int argc, char* argv[]) {
+  auto curr_path = std::filesystem::current_path();
   // config
-  Config::Instance()->SetConfigFile("configs/config.yaml");
-  bool log_to_file = Config::Instance()->Get<bool>("log_to_file");
-  std::string log_path = Config::Instance()->Get<std::string>("log_path");
-  std::string lidar = Config::Instance()->Get<std::string>("lidar");
+  YAMLConfig::Instance()->Init(
+      (curr_path / "oh_my_loam/configs/config.yaml").string());
+  bool log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
+  std::string log_path = YAMLConfig::Instance()->Get<std::string>("log_path");
+  std::string lidar = YAMLConfig::Instance()->Get<std::string>("lidar");
 
   // logging
-  g3::InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
+  InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
   AUSER << "LOAM start..., lidar = " << lidar;
 
   // SLAM system
@@ -43,9 +47,9 @@ int main(int argc, char* argv[]) {
 
 void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam) {
-  PointCloud cloud;
-  pcl::fromROSMsg(*msg, cloud);
+  PointCloudPtr cloud(new PointCloud);
+  pcl::fromROSMsg(*msg, *cloud);
   double timestamp = msg->header.stamp.toSec();
-  AINFO << "Timestamp = " << LOG_TIMESTAMP(timestamp);
-  slam->Run(cloud, timestamp);
+  AUSER << "Timestamp: " << FMT_TIMESTAMP(timestamp);
+  slam->Run(timestamp, cloud);
 }

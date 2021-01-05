@@ -1,7 +1,7 @@
 #pragma once
 
-#include "base/feature.h"
 #include "common/visualizer/lidar_visualizer.h"
+#include "oh_my_loam/base/feature.h"
 
 namespace oh_my_loam {
 

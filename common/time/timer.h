@@ -37,8 +37,15 @@ class TimerWrapper {
   DISALLOW_COPY_AND_ASSIGN(TimerWrapper);
 };
 
-#define TIME_ELAPSED(msg) TimerWrapper(msg)
-#define TIME_ELAPSED_EXPECT(msg, max_time_elapsed) \
-  TimerWrapper(msg, max_time_elapsed)
+#define BLOCK_TIMER_START ::common::Timer __timer__
+
+#define BLOCK_TIMER_STOP __timer__.Toc()
+
+#define BLOCK_TIMER_STOP_FMT FMT_TIMESTAMP(__timer__.Toc()) << " ms"
+
+#define BLOCK_TIME_ELAPSED(msg) ::common::TimerWrapper __timer_wrapper__(msg)
+
+#define BLOCK_TIME_ELAPSED_EXPECT(msg, max_time) \
+  ::common::TimerWrapper __timer_wrapper__(msg, max_time)
 
 }  // namespace common
