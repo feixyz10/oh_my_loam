@@ -25,7 +25,7 @@ class OhMyLoam {
   // remove outliers: nan and very close points
   void RemoveOutliers(const common::PointCloud& cloud_in,
                       common::PointCloud* const cloud_out) const;
-  std::vector<common::Pose3d> poses_;
+  std::vector<common::Pose3D> poses_;
 
   DISALLOW_COPY_AND_ASSIGN(OhMyLoam)
 };

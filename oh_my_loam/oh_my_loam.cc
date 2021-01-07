@@ -35,7 +35,7 @@ void OhMyLoam::Run(double timestamp, const PointCloudConstPtr& cloud_in) {
   RemoveOutliers(*cloud_in, cloud.get());
   Feature feature;
   extractor_->Process(cloud, &feature);
-  Pose3d pose;
+  Pose3D pose;
   odometer_->Process(feature, &pose);
   poses_.emplace_back(pose);
 }

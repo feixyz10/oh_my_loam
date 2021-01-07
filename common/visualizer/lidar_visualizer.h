@@ -106,10 +106,7 @@ class LidarVisualizer {
   }
 
   void RemoveRenderedObjects() {
-    for (const auto &id : rendered_cloud_ids_) {
-      viewer_->removePointCloud(id);
-    }
-    rendered_cloud_ids_.clear();
+    viewer_->removeAllPointClouds();
     viewer_->removeAllShapes();
   }
 
@@ -124,7 +121,6 @@ class LidarVisualizer {
       const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
       const Color &color, const std::string &id, int point_size = 3) {
     AddPointCloud<PointType>(cloud, color, id, viewer_.get(), point_size);
-    rendered_cloud_ids_.push_back(id);
   }
 
   template <typename PointType>
@@ -132,7 +128,6 @@ class LidarVisualizer {
       const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
       const std::string &field, const std::string &id, int point_size = 3) {
     AddPointCloud<PointType>(cloud, field, id, viewer_.get(), point_size);
-    rendered_cloud_ids_.push_back(id);
   }
 
   // visualizer name
@@ -154,9 +149,6 @@ class LidarVisualizer {
   // The current displayed frame iter.
   typename std::deque<std::shared_ptr<LidarVisFrame>>::iterator
       curr_frame_iter_;
-
-  // The rendered cloud ids.
-  std::vector<std::string> rendered_cloud_ids_;
 
   // thread for visualization
   std::unique_ptr<std::thread> thread_ = nullptr;

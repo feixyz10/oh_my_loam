@@ -33,9 +33,9 @@ void OdometerVisualizer::Draw() {
   DrawPointCloud<TPoint>(tgt_corn_pts, BLUE, "tgt_corn_pts", 4);
   DrawPointCloud<TPoint>(src_surf_pts, PURPLE, "src_surf_pts", 7);
   DrawPointCloud<TPoint>(tgt_surf_pts, RED, "tgt_surf_pts", 4);
-  std::vector<Pose3d> poses_n;
+  std::vector<Pose3D> poses_n;
   poses_n.reserve((poses_.size()));
-  Pose3d pose_inv = frame.pose_curr2world.Inv();
+  Pose3D pose_inv = frame.pose_curr2world.Inv();
   for (const auto& pose : poses_) {
     poses_n.emplace_back(pose_inv * pose);
   };

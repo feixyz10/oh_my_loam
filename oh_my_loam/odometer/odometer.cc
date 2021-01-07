@@ -23,12 +23,12 @@ bool Odometer::Init() {
   return true;
 }
 
-void Odometer::Process(const Feature& feature, Pose3d* const pose) {
+void Odometer::Process(const Feature& feature, Pose3D* const pose) {
   BLOCK_TIMER_START;
   if (!is_initialized_) {
     is_initialized_ = true;
     UpdatePre(feature);
-    *pose = Pose3d();
+    *pose = Pose3D();
     AWARN << "Odometer initialized....";
     return;
   }
@@ -62,7 +62,7 @@ void Odometer::Process(const Feature& feature, Pose3d* const pose) {
       solver.AddPointPlanePair(pair, GetTime(pair.pt));
     }
     solver.Solve();
-    pose_curr2last_ = Pose3d(q, p);
+    pose_curr2last_ = Pose3D(q, p);
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
   *pose = pose_curr2world_;

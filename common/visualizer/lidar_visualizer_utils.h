@@ -42,7 +42,7 @@ void AddLine(const pcl::PointXYZ& pt1, const pcl::PointXYZ& pt2,
              const Color& color, const std::string& id,
              PCLVisualizer* const viewer);
 
-void DrawSphere(const pcl::PointXYZ& center, double radius, const Color& color,
-                const std::string& id, PCLVisualizer* const viewer);
+void AddSphere(const pcl::PointXYZ& center, double radius, const Color& color,
+               const std::string& id, PCLVisualizer* const viewer);
 
 }  // namespace common

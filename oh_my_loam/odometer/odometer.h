@@ -15,7 +15,7 @@ class Odometer {
 
   bool Init();
 
-  void Process(const Feature& feature, common::Pose3d* const pose);
+  void Process(const Feature& feature, common::Pose3D* const pose);
 
  protected:
   void UpdatePre(const Feature& feature);
@@ -32,8 +32,8 @@ class Odometer {
                  const std::vector<PointLinePair>& pl_pairs,
                  const std::vector<PointPlanePair>& pp_pairs) const;
 
-  common::Pose3d pose_curr2world_;
-  common::Pose3d pose_curr2last_;
+  common::Pose3D pose_curr2world_;
+  common::Pose3D pose_curr2last_;
 
   common::TPointCloudPtr corn_pre_{nullptr};
   common::TPointCloudPtr surf_pre_{nullptr};
