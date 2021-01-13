@@ -8,7 +8,7 @@ namespace oh_my_loam {
 namespace {
 const double kPointMinDist = 0.1;
 using namespace common;
-}
+}  // namespace
 
 bool OhMyLoam::Init() {
   YAML::Node config = YAMLConfig::Instance()->config();
@@ -34,9 +34,9 @@ void OhMyLoam::Run(double timestamp, const PointCloudConstPtr& cloud_in) {
   PointCloudPtr cloud(new PointCloud);
   RemoveOutliers(*cloud_in, cloud.get());
   Feature feature;
-  extractor_->Process(cloud, &feature);
+  extractor_->Process(timestamp, cloud, &feature);
   Pose3D pose;
-  odometer_->Process(feature, &pose);
+  odometer_->Process(timestamp, feature, &pose);
   poses_.emplace_back(pose);
 }
 

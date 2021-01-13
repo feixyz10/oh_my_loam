@@ -12,7 +12,7 @@ namespace common {
 
 struct LidarVisFrame {
   double timestamp = 0.0;
-  PointCloudPtr cloud = nullptr;
+  PointCloudConstPtr cloud = nullptr;
 };
 
 class LidarVisualizer {

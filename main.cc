@@ -16,10 +16,8 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
                        OhMyLoam* const slam);
 
 int main(int argc, char* argv[]) {
-  auto curr_path = std::filesystem::current_path();
   // config
-  YAMLConfig::Instance()->Init(
-      (curr_path / "oh_my_loam/configs/config.yaml").string());
+  YAMLConfig::Instance()->Init(argv[1]);
   bool log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
   std::string log_path = YAMLConfig::Instance()->Get<std::string>("log_path");
   std::string lidar = YAMLConfig::Instance()->Get<std::string>("lidar");

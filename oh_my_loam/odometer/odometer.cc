@@ -18,12 +18,13 @@ bool Odometer::Init() {
   verbose_ = config_["verbose"].as<bool>();
   kdtree_surf_.reset(new pcl::KdTreeFLANN<TPoint>);
   kdtree_corn_.reset(new pcl::KdTreeFLANN<TPoint>);
-  AINFO << "Odometer visualizer: " << (is_vis_ ? "ON" : "OFF");
+  AINFO << "Odometry visualizer: " << (is_vis_ ? "ON" : "OFF");
   if (is_vis_) visualizer_.reset(new OdometerVisualizer);
   return true;
 }
 
-void Odometer::Process(const Feature& feature, Pose3D* const pose) {
+void Odometer::Process(double timestamp, const Feature& feature,
+                       Pose3D* const pose) {
   BLOCK_TIMER_START;
   if (!is_initialized_) {
     is_initialized_ = true;
@@ -75,7 +76,7 @@ void Odometer::Process(const Feature& feature, Pose3D* const pose) {
 
 void Odometer::MatchCornFeature(const TPointCloud& src, const TPointCloud& tgt,
                                 std::vector<PointLinePair>* const pairs) const {
-  double dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
+  double dist_sq_thresh = config_["match_dist_sq_th"].as<double>();
   for (const auto& q_pt : src) {
     TPoint query_pt;
     TransformToStart(pose_curr2last_, q_pt, &query_pt);
@@ -119,7 +120,7 @@ void Odometer::MatchCornFeature(const TPointCloud& src, const TPointCloud& tgt,
 void Odometer::MatchSurfFeature(
     const TPointCloud& src, const TPointCloud& tgt,
     std::vector<PointPlanePair>* const pairs) const {
-  double dist_sq_thresh = config_["match_dist_sq_thresh"].as<double>();
+  double dist_sq_thresh = config_["match_dist_sq_th"].as<double>();
   for (const auto& q_pt : src) {
     TPoint query_pt;
     TransformToStart(pose_curr2last_, q_pt, &query_pt);
@@ -193,8 +194,10 @@ void Odometer::UpdatePre(const Feature& feature) {
 
 void Odometer::Visualize(const Feature& feature,
                          const std::vector<PointLinePair>& pl_pairs,
-                         const std::vector<PointPlanePair>& pp_pairs) const {
+                         const std::vector<PointPlanePair>& pp_pairs,
+                         double timestamp) const {
   std::shared_ptr<OdometerVisFrame> frame(new OdometerVisFrame);
+  frame->timestamp = timestamp;
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
   frame->pose_curr2last = pose_curr2last_;

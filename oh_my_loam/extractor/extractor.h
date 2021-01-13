@@ -15,14 +15,13 @@ class Extractor {
 
   bool Init();
 
-  void Process(const common::PointCloudConstPtr& cloud, Feature* const feature);
+  void Process(double timestamp, const common::PointCloudConstPtr& cloud,
+               Feature* const feature);
 
   int num_scans() const { return num_scans_; }
 
  protected:
   virtual int GetScanID(const common::Point& pt) const = 0;
-
-  YAML::Node config_;
 
   virtual void SplitScan(const common::PointCloud& cloud,
                          std::vector<TCTPointCloud>* const scans) const;
@@ -34,18 +33,20 @@ class Extractor {
   virtual void GenerateFeature(const TCTPointCloud& scan,
                                Feature* const feature) const;
 
+  virtual void Visualize(const common::PointCloudConstPtr& cloud,
+                         const Feature& feature, double timestamp = 0.0);
+
   int num_scans_ = 0;
+
+  YAML::Node config_;
 
   std::unique_ptr<ExtractorVisualizer> visualizer_{nullptr};
 
   bool verbose_ = false;
 
  private:
-  void Visualize(const common::PointCloud& cloud, const Feature& feature,
-                 double timestamp = 0.0);
-
-  void SetNeighborsPicked(const TCTPointCloud& scan, size_t ix,
-                          std::vector<bool>* const picked) const;
+  void UpdateNeighborsPicked(const TCTPointCloud& scan, size_t ix,
+                             std::vector<bool>* const picked) const;
 
   bool is_vis_ = false;
 

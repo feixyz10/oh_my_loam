@@ -40,7 +40,8 @@ inline double IsFinite(const PointType& pt) {
 template <typename PointType>
 void RemovePoints(const pcl::PointCloud<PointType>& cloud_in,
                   pcl::PointCloud<PointType>* const cloud_out,
-                  std::function<bool(const PointType&)> check) {
+                  std::function<bool(const PointType&)> check,
+                  std::vector<int>* const removed_indices = nullptr) {
   if (&cloud_in != cloud_out) {
     cloud_out->header = cloud_in.header;
     cloud_out->resize(cloud_in.size());
@@ -48,7 +49,10 @@ void RemovePoints(const pcl::PointCloud<PointType>& cloud_in,
   size_t j = 0;
   for (size_t i = 0; i < cloud_in.size(); ++i) {
     const auto pt = cloud_in.points[i];
-    if (check(pt)) continue;
+    if (check(pt)) {
+      if (removed_indices) removed_indices->push_back(i);
+      continue;
+    }
     cloud_out->points[j++] = pt;
   }
 

@@ -15,7 +15,8 @@ class Odometer {
 
   bool Init();
 
-  void Process(const Feature& feature, common::Pose3D* const pose);
+  void Process(double timestamp, const Feature& feature,
+               common::Pose3D* const pose);
 
  protected:
   void UpdatePre(const Feature& feature);
@@ -30,7 +31,8 @@ class Odometer {
 
   void Visualize(const Feature& feature,
                  const std::vector<PointLinePair>& pl_pairs,
-                 const std::vector<PointPlanePair>& pp_pairs) const;
+                 const std::vector<PointPlanePair>& pp_pairs,
+                 double timestamp = 0.0) const;
 
   common::Pose3D pose_curr2world_;
   common::Pose3D pose_curr2last_;
