@@ -6,7 +6,7 @@
 namespace oh_my_loam {
 
 struct ExtractorVisFrame : public common::LidarVisFrame {
-  Feature feature;
+  std::vector<Feature> features;
 };
 
 class ExtractorVisualizer : public common::LidarVisualizer {

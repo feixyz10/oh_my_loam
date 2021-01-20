@@ -16,7 +16,7 @@ class Extractor {
   bool Init();
 
   void Process(double timestamp, const common::PointCloudConstPtr& cloud,
-               Feature* const feature);
+               std::vector<Feature>* const features);
 
   int num_scans() const { return num_scans_; }
 
@@ -34,7 +34,8 @@ class Extractor {
                                Feature* const feature) const;
 
   virtual void Visualize(const common::PointCloudConstPtr& cloud,
-                         const Feature& feature, double timestamp = 0.0);
+                         const std::vector<Feature>& features,
+                         double timestamp = 0.0);
 
   int num_scans_ = 0;
 

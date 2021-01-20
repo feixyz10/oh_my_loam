@@ -4,63 +4,82 @@
 
 namespace common {
 
-class Pose3D {
+template <typename T>
+class Pose3 {
  public:
-  Pose3D() {
-    q_.setIdentity();
-    p_.setZero();
+  Pose3() {
+    r_quat_.setIdentity();
+    t_vec_.setZero();
   };
 
-  Pose3D(const Eigen::Quaterniond& q, const Eigen::Vector3d& p)
-      : q_(q), p_(p) {}
+  Pose3(const Eigen::Quaterniond& r_quat, const Eigen::Matrix<T, 3, 1>& t_vec)
+      : r_quat_(q), t_vec_(p) {}
 
-  Pose3D(const Eigen::Matrix3d& r_mat, const Eigen::Vector3d& p)
-      : q_(r_mat), p_(p) {}
+  Pose3(const Eigen::Matrix3d& r_mat, const Eigen::Matrix<T, 3, 1>& t_vec)
+      : r_quat_(r_mat), t_vec_(t_vec) {}
 
-  Pose3D(const double* const q, const double* const p) : q_(q), p_(p) {}
+  Pose3(const double* const r_quat, const double* const t_vec)
+      : r_quat_(r_quat), t_vec_(t_vec) {}
 
-  Pose3D Inv() const {
-    Eigen::Quaterniond q_inv = q_.inverse();
-    Eigen::Vector3d p_inv = q_inv * p_;
-    return {q_inv, -p_inv};
+  Pose3 Inv() const {
+    Eigen::Quaternion<T> r_inv = r_quat_.inverse();
+    Eigen::Matrix<T, 3, 1> t_inv = -r_inv * t_vec_;
+    return {r_inv, t_inv};
   }
 
-  Eigen::Vector3d Transform(const Eigen::Vector3d& vec) const {
-    return q_ * vec + p_;
+  Eigen::Matrix<T, 3, 1> Transform(const Eigen::Matrix<T, 3, 1>& point) const {
+    return r_quat_ * point + t_vec_;
   }
 
-  Eigen::Vector3d operator*(const Eigen::Vector3d& vec) const {
-    return Transform(vec);
+  Eigen::Matrix<T, 3, 1> operator*(const Eigen::Matrix<T, 3, 1>& point) const {
+    return Transform(point);
   }
 
-  Eigen::Vector3d Translate(const Eigen::Vector3d& vec) const {
-    return vec + p_;
+  Eigen::Matrix<T, 3, 1> Translate(const Eigen::Matrix<T, 3, 1>& vec) const {
+    return vec + t_vec_;
   }
 
-  Eigen::Vector3d Rotate(const Eigen::Vector3d& vec) const { return q_ * vec; }
+  Eigen::Matrix<T, 3, 1> Rotate(const Eigen::Matrix<T, 3, 1>& vec) const {
+    return r_quat_ * vec;
+  }
 
-  // Spherical linear interpolation to `pose_to`, `t` belongs [0, 1]
-  Pose3D Interpolate(const Pose3D& pose_to, double t) const {
-    Eigen::Quaterniond q_interp = q_.slerp(t, pose_to.q_);
-    Eigen::Vector3d p_interp = (pose_to.p_ - p_) * t + p_;
+  // Spherical linear interpolation to `pose_to`
+  Pose3 Interpolate(const Pose3& pose_to, double t) const {
+    Pose3 pose_dst;
+    Eigen::Quaternion<T> q_interp = r_quat_.slerp(t, pose_to.r_quat_);
+    Eigen::Matrix<T, 3, 1> p_interp = (pose_to.t_vec_ - t_vec_) * t + t_vec_;
     return {q_interp, p_interp};
   }
 
-  std::string ToString() const;
+  std::string ToString() const {
+    std::ostringstream oss;
+    oss << "[Pose3D] q = (" << q_.coeffs().transpose() << "), p = ("
+        << p_.transpose() << ")";
+    return oss.str();
+  }
 
-  Eigen::Quaterniond q() const { return q_; }
+  Eigen::Quaternion<T> r_quat() const { return r_quat_; }
 
-  Eigen::Vector3d p() const { return p_; }
+  Eigen::Matrix<T, 3, 1> t_vec() const { return t_vec_; }
 
  protected:
-  Eigen::Quaterniond q_;  // orientation
-  Eigen::Vector3d p_;     // position
+  Eigen::Quaternion<T> r_quat_;   // orientation/rotation
+  Eigen::Matrix<T, 3, 1> t_vec_;  // positon/translation
 };
 
-Pose3D Interpolate(const Pose3D& pose_from, const Pose3D& pose_to, double t);
+template <typename T>
+Pose3<T> Interpolate(const Pose3<T>& pose_from, const Pose3<T>& pose_to,
+                     double t) {
+  return pose_from.Interpolate(pose_to, t);
+}
 
-Pose3D operator*(const Pose3D& lhs, const Pose3D& rhs);
+template <typename T>
+Pose3<T> operator*(const Pose3<T>& lhs, const Pose3<T>& rhs) {
+  return Pose3<T>(lhs.q() * rhs.q(), lhs.q() * rhs.p() + lhs.p());
+}
 
-using Trans3d = Pose3D;
+using Pose3d = Pose3<double>;
+
+using Pose3f = Pose3<float>;
 
 }  // namespace common

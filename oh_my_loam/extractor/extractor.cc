@@ -23,7 +23,7 @@ bool Extractor::Init() {
 }
 
 void Extractor::Process(double timestamp, const PointCloudConstPtr& cloud,
-                        Feature* const feature) {
+                        std::vector<Feature>* const features) {
   BLOCK_TIMER_START;
   if (cloud->size() < config_["min_point_num"].as<size_t>()) {
     AWARN << "Too few input points: num = " << cloud->size() << " (< "
@@ -45,11 +45,13 @@ void Extractor::Process(double timestamp, const PointCloudConstPtr& cloud,
   }
   AINFO_IF(verbose_) << "Extractor::AssignType: " << BLOCK_TIMER_STOP_FMT;
   // store points into feature point clouds based on their type
-  for (const auto& scan : scans) {
-    GenerateFeature(scan, feature);
+  for (size_t i = 0; i < scans.size(); ++i) {
+    Feature feature;
+    GenerateFeature(scans[i], &feature);
+    features->push_back(std::move(feature));
   }
   AINFO << "Extractor::Process: " << BLOCK_TIMER_STOP_FMT;
-  if (is_vis_) Visualize(cloud, *feature, timestamp);
+  if (is_vis_) Visualize(cloud, *features, timestamp);
 }
 
 void Extractor::SplitScan(const PointCloud& cloud,
@@ -68,9 +70,9 @@ void Extractor::SplitScan(const PointCloud& cloud,
       half_passed = true;
       yaw_start += kTwoPi;
     }
-    (*scans)[scan_id].push_back(
-        {pt.x, pt.y, pt.z, static_cast<float>(yaw_diff / kTwoPi + scan_id),
-         std::nanf("")});
+    (*scans)[scan_id].push_back({pt.x, pt.y, pt.z,
+                                 static_cast<float>(yaw_diff / kTwoPi),
+                                 std::nanf("")});
   }
 }
 
@@ -123,9 +125,9 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
           scan->at(ix).curvature > corner_point_curvature_th) {
         ++corner_point_picked_num;
         if (corner_point_picked_num <= sharp_corner_point_num) {
-          scan->at(ix).type = Type::SHARP;
+          scan->at(ix).type = PType::SHARP_CORNER;
         } else if (corner_point_picked_num <= corner_point_num) {
-          scan->at(ix).type = Type::LESS_SHARP;
+          scan->at(ix).type = PType::CORNER;
         } else {
           break;
         }
@@ -140,9 +142,9 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
       if (!picked.at(ix) && scan->at(ix).curvature < surf_point_curvature_th) {
         ++surf_point_picked_num;
         if (surf_point_picked_num <= flat_surf_point_num) {
-          scan->at(ix).type = Type::FLAT;
+          scan->at(ix).type = PType::FLAT_SURF;
         } else if (surf_point_picked_num <= surf_point_num) {
-          scan->at(ix).type = Type::LESS_FLAT;
+          scan->at(ix).type = PType::SURF;
         } else {
           break;
         }
@@ -155,40 +157,38 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
 
 void Extractor::GenerateFeature(const TCTPointCloud& scan,
                                 Feature* const feature) const {
-  TPointCloudPtr cloud_less_flat_surf(new TPointCloud);
-  for (const auto& pt : scan.points) {
+  for (const auto& pt : scan) {
     TPoint point(pt.x, pt.y, pt.z, pt.time);
     switch (pt.type) {
-      case Type::FLAT:
+      case PType::FLAT_SURF:
         feature->cloud_flat_surf->points.emplace_back(point);
-      // no break: FLAT points are also LESS_FLAT
-      case Type::LESS_FLAT:
-        cloud_less_flat_surf->points.emplace_back(point);
+      // no break: FLAT_SURF points are also SURF points
+      case PType::SURF:
+        feature->cloud_surf->points.emplace_back(point);
         break;
-      case Type::SHARP:
+      case PType::SHARP_CORNER:
         feature->cloud_sharp_corner->points.emplace_back(point);
-      // no break: SHARP points are also LESS_SHARP
-      case Type::LESS_SHARP:
-        feature->cloud_less_sharp_corner->points.emplace_back(point);
+      // no break: SHARP_CORNER points are also CORNER points
+      case PType::CORNER:
+        feature->cloud_corner->points.emplace_back(point);
         break;
       default:
-        // all the rest are also LESS_FLAT
-        cloud_less_flat_surf->points.emplace_back(pt.x, pt.y, pt.z, pt.time);
         break;
     }
   }
   TPointCloudPtr dowm_sampled(new TPointCloud);
-  VoxelDownSample<TPoint>(cloud_less_flat_surf, dowm_sampled.get(),
+  VoxelDownSample<TPoint>(feature->cloud_surf, dowm_sampled.get(),
                           config_["downsample_voxel_size"].as<double>());
-  feature->cloud_less_flat_surf = dowm_sampled;
+  feature->cloud_surf->swap(*dowm_sampled);
 }
 
 void Extractor::Visualize(const PointCloudConstPtr& cloud,
-                          const Feature& feature, double timestamp) {
+                          const std::vector<Feature>& features,
+                          double timestamp) {
   std::shared_ptr<ExtractorVisFrame> frame(new ExtractorVisFrame);
   frame->timestamp = timestamp;
   frame->cloud = cloud;
-  frame->feature = feature;
+  frame->features = features;
   visualizer_->Render(frame);
 }
 

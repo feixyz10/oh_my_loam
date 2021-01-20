@@ -15,11 +15,11 @@ class Odometer {
 
   bool Init();
 
-  void Process(double timestamp, const Feature& feature,
+  void Process(double timestamp, const std::vector<Feature>& features,
                common::Pose3D* const pose);
 
  protected:
-  void UpdatePre(const Feature& feature);
+  void UpdatePre(const std::vector<Feature>& feature) s;
 
   void MatchCornFeature(const common::TPointCloud& src,
                         const common::TPointCloud& tgt,
@@ -29,7 +29,7 @@ class Odometer {
                         const common::TPointCloud& tgt,
                         std::vector<PointPlanePair>* const pairs) const;
 
-  void Visualize(const Feature& feature,
+  void Visualize(const std::vector<Feature>& features,
                  const std::vector<PointLinePair>& pl_pairs,
                  const std::vector<PointPlanePair>& pp_pairs,
                  double timestamp = 0.0) const;
@@ -37,8 +37,8 @@ class Odometer {
   common::Pose3D pose_curr2world_;
   common::Pose3D pose_curr2last_;
 
-  common::TPointCloudPtr corn_pre_{nullptr};
-  common::TPointCloudPtr surf_pre_{nullptr};
+  common::TPointCloudPtr cloud_corn_pre_{nullptr};
+  common::TPointCloudPtr cloud_surf_pre_{nullptr};
 
   pcl::KdTreeFLANN<common::TPoint>::Ptr kdtree_surf_{nullptr};
   pcl::KdTreeFLANN<common::TPoint>::Ptr kdtree_corn_{nullptr};

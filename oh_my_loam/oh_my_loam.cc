@@ -17,27 +17,27 @@ bool OhMyLoam::Init() {
     AERROR << "Failed to initialize extractor";
     return false;
   }
-  odometer_.reset(new Odometer);
-  if (!odometer_->Init()) {
-    AERROR << "Failed to initialize odometer";
-    return false;
-  }
-  mapper_.reset(new Mapper);
-  if (!mapper_->Init()) {
-    AERROR << "Failed to initialize mapper";
-    return false;
-  }
+  // odometer_.reset(new Odometer);
+  // if (!odometer_->Init()) {
+  //   AERROR << "Failed to initialize odometer";
+  //   return false;
+  // }
+  // mapper_.reset(new Mapper);
+  // if (!mapper_->Init()) {
+  //   AERROR << "Failed to initialize mapper";
+  //   return false;
+  // }
   return true;
 }
 
 void OhMyLoam::Run(double timestamp, const PointCloudConstPtr& cloud_in) {
   PointCloudPtr cloud(new PointCloud);
   RemoveOutliers(*cloud_in, cloud.get());
-  Feature feature;
-  extractor_->Process(timestamp, cloud, &feature);
-  Pose3D pose;
-  odometer_->Process(timestamp, feature, &pose);
-  poses_.emplace_back(pose);
+  std::vector<Feature> features;
+  extractor_->Process(timestamp, cloud, &features);
+  // Pose3D pose;
+  // odometer_->Process(timestamp, feature, &pose);
+  // poses_.emplace_back(pose);
 }
 
 void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,
