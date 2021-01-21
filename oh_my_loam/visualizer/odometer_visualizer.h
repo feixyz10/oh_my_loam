@@ -10,8 +10,8 @@ struct OdometerVisFrame : public common::LidarVisFrame {
   common::TPointCloudPtr cloud_corner;
   std::vector<PointLinePair> pl_pairs;
   std::vector<PointPlanePair> pp_pairs;
-  common::Pose3D pose_curr2last;
-  common::Pose3D pose_curr2world;
+  common::Pose3d pose_curr2last;
+  common::Pose3d pose_curr2world;
 };
 
 class OdometerVisualizer : public common::LidarVisualizer {
@@ -23,7 +23,7 @@ class OdometerVisualizer : public common::LidarVisualizer {
  private:
   void Draw() override;
 
-  std::deque<common::Pose3D> poses_;
+  std::deque<common::Pose3d> poses_;
 };
 
 }  // namespace oh_my_loam

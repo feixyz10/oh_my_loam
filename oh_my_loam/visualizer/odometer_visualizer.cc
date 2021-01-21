@@ -33,16 +33,16 @@ void OdometerVisualizer::Draw() {
   DrawPointCloud<TPoint>(tgt_corn_pts, BLUE, "tgt_corn_pts", 4);
   DrawPointCloud<TPoint>(src_surf_pts, PURPLE, "src_surf_pts", 7);
   DrawPointCloud<TPoint>(tgt_surf_pts, RED, "tgt_surf_pts", 4);
-  std::vector<Pose3D> poses_n;
+  std::vector<Pose3d> poses_n;
   poses_n.reserve((poses_.size()));
-  Pose3D pose_inv = frame.pose_curr2world.Inv();
+  Pose3d pose_inv = frame.pose_curr2world.Inv();
   for (const auto& pose : poses_) {
     poses_n.emplace_back(pose_inv * pose);
   };
   for (size_t i = 0; i < poses_n.size(); ++i) {
-    Eigen::Vector3f p1 = poses_n[i].p().cast<float>();
+    Eigen::Vector3f p1 = poses_n[i].t_vec().cast<float>();
     if (i < poses_n.size() - 1) {
-      Eigen::Vector3f p2 = poses_n[i + 1].p().cast<float>();
+      Eigen::Vector3f p2 = poses_n[i + 1].t_vec().cast<float>();
       AddLine(Point(p1.x(), p1.y(), p1.z()), Point(p2.x(), p2.y(), p2.z()),
               WHITE, "line" + std::to_string(i), viewer_.get());
     } else {

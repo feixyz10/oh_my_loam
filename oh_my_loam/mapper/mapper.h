@@ -18,7 +18,7 @@ class Mapper {
   void Visualize();
 
   common::TPointCloudPtr map_pts_;
-  common::Pose3D pose_curr2world_;
+  common::Pose3d pose_curr2world_;
 
   bool is_initialized = false;
 

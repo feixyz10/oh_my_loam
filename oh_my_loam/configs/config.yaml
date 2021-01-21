@@ -6,25 +6,25 @@ vis: true
 
 # configs for extractor
 extractor_config:
-  vis: true
+  vis: false
   verbose: true
   min_point_num: 66
   sharp_corner_point_num: 2
   corner_point_num: 20
   flat_surf_point_num: 4
-  surf_point_num: 20 
+  surf_point_num: 20
   corner_point_curvature_th: 0.5
   surf_point_curvature_th: 0.5
   neighbor_point_dist_th: 0.1
   downsample_voxel_size: 0.3
 
 # configs for odometer
-odometer_config: 
-  vis: false
+odometer_config:
+  vis: true
   verbose: false
-  icp_iter_num : 2
+  icp_iter_num: 2
   match_dist_sq_th: 1
 
 # configs for mapper
-mapper_config: 
+mapper_config:
   vis: false

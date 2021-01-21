@@ -54,9 +54,9 @@ target_link_libraries(main
   common
   oh_my_loam
   extractor
-  # odometer
+  odometer
   # mapper
-  # solver
+  solver
   ${CERES_LIBRARIES}
   visualizer
   base
