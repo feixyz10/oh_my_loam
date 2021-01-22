@@ -6,8 +6,8 @@
 namespace oh_my_loam {
 
 struct OdometerVisFrame : public common::LidarVisFrame {
-  common::TPointCloudPtr cloud_surf;
-  common::TPointCloudPtr cloud_corner;
+  TPointCloudPtr cloud_surf;
+  TPointCloudPtr cloud_corner;
   std::vector<PointLinePair> pl_pairs;
   std::vector<PointPlanePair> pp_pairs;
   common::Pose3d pose_curr2last;

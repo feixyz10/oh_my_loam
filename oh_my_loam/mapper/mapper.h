@@ -2,7 +2,7 @@
 
 #include "common/common.h"
 #include "common/geometry/pose.h"
-#include "common/pcl/pcl_types.h"
+#include "oh_my_loam/base/types.h"
 
 namespace oh_my_loam {
 
@@ -17,7 +17,7 @@ class Mapper {
  private:
   void Visualize();
 
-  common::TPointCloudPtr map_pts_;
+  TPointCloudPtr map_pts_;
   common::Pose3d pose_curr2world_;
 
   bool is_initialized = false;

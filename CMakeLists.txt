@@ -18,9 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rosbag
   std_msgs
-  image_transport
-  cv_bridge
-  tf
 )
 
 include_directories(SYSTEM
@@ -28,9 +25,6 @@ include_directories(SYSTEM
   ${PCL_INCLUDE_DIRS}
   ${G3LOG_INCLUDE_DIRS}
 )
-
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 
 catkin_package(
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs

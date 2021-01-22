@@ -2,3 +2,7 @@
 /.log
 *.pcd
 /build
+/.clangd
+compile_commands.json
+.clang-tidy
+.clang-format
