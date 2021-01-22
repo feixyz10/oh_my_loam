@@ -30,7 +30,7 @@ bool OhMyLoam::Init() {
   return true;
 }
 
-void OhMyLoam::Run(double timestamp, const PointCloudConstPtr& cloud_in) {
+void OhMyLoam::Run(double timestamp, const PointCloudConstPtr &cloud_in) {
   PointCloudPtr cloud(new PointCloud);
   RemoveOutliers(*cloud_in, cloud.get());
   std::vector<Feature> features;
@@ -40,9 +40,9 @@ void OhMyLoam::Run(double timestamp, const PointCloudConstPtr& cloud_in) {
   poses_.emplace_back(pose);
 }
 
-void OhMyLoam::RemoveOutliers(const PointCloud& cloud_in,
-                              PointCloud* const cloud_out) const {
-  RemovePoints<Point>(cloud_in, cloud_out, [&](const Point& pt) {
+void OhMyLoam::RemoveOutliers(const PointCloud &cloud_in,
+                              PointCloud *const cloud_out) const {
+  RemovePoints<Point>(cloud_in, cloud_out, [&](const Point &pt) {
     return !IsFinite<Point>(pt) ||
            DistanceSqure<Point>(pt) < kPointMinDist * kPointMinDist;
   });

@@ -11,18 +11,18 @@ namespace common {
 
 class YAMLConfig {
  public:
-  void Init(const std::string& file) {
+  void Init(const std::string &file) {
     config_.reset(new YAML::Node);
     *config_ = YAML::LoadFile(file);
   }
 
   template <typename T>
-  const T Get(const std::string& key) const {
+  const T Get(const std::string &key) const {
     AFATAL_IF(!config_) << "Not initialized, please call Init first.";
     return (*config_)[key].as<T>();
   }
 
-  const YAML::Node& config() const {
+  const YAML::Node &config() const {
     AFATAL_IF(!config_) << "Not initialized, please call Init first.";
     return *config_;
   }

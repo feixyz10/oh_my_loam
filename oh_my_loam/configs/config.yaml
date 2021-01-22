@@ -12,7 +12,7 @@ extractor_config:
   sharp_corner_point_num: 2
   corner_point_num: 20
   flat_surf_point_num: 4
-  surf_point_num: 20
+  surf_point_num: 50
   corner_point_curvature_th: 0.5
   surf_point_curvature_th: 0.5
   neighbor_point_dist_th: 0.1

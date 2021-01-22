@@ -16,7 +16,7 @@ class Odometer {
   bool Init();
 
   void Process(double timestamp, const std::vector<Feature> &features,
-               common::Pose3d *const pose);
+               common::Pose3d *const pose_out);
 
  protected:
   void UpdatePre(const std::vector<Feature> &features);
@@ -41,6 +41,8 @@ class Odometer {
 
   std::vector<TPointCloudPtr> clouds_corn_pre_;
   std::vector<TPointCloudPtr> clouds_surf_pre_;
+  TPointCloudPtr corn_pre_;
+  TPointCloudPtr surf_pre_;
 
   std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_surf_;
   std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_corn_;

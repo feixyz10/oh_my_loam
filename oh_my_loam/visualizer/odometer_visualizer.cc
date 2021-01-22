@@ -13,7 +13,7 @@ void OdometerVisualizer::Draw() {
   src_corn_pts->resize(frame.pl_pairs.size());
   tgt_corn_pts->resize(frame.pl_pairs.size() * 2);
   for (size_t i = 0; i < frame.pl_pairs.size(); ++i) {
-    const auto& pair = frame.pl_pairs[i];
+    const auto &pair = frame.pl_pairs[i];
     TransformToStart(frame.pose_curr2last, pair.pt, &src_corn_pts->points[i]);
     tgt_corn_pts->points[2 * i] = pair.line.pt1;
     tgt_corn_pts->points[2 * i + 1] = pair.line.pt2;
@@ -23,7 +23,7 @@ void OdometerVisualizer::Draw() {
   src_surf_pts->resize(frame.pp_pairs.size());
   tgt_surf_pts->resize(frame.pp_pairs.size() * 3);
   for (size_t i = 0; i < frame.pp_pairs.size(); ++i) {
-    const auto& pair = frame.pp_pairs[i];
+    const auto &pair = frame.pp_pairs[i];
     TransformToStart(frame.pose_curr2last, pair.pt, &src_surf_pts->points[i]);
     tgt_surf_pts->points[3 * i] = pair.plane.pt1;
     tgt_surf_pts->points[3 * i + 1] = pair.plane.pt2;
@@ -36,7 +36,7 @@ void OdometerVisualizer::Draw() {
   std::vector<Pose3d> poses_n;
   poses_n.reserve((poses_.size()));
   Pose3d pose_inv = frame.pose_curr2world.Inv();
-  for (const auto& pose : poses_) {
+  for (const auto &pose : poses_) {
     poses_n.emplace_back(pose_inv * pose);
   };
   for (size_t i = 0; i < poses_n.size(); ++i) {

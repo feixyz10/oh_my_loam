@@ -9,13 +9,13 @@ namespace oh_my_loam {
 
 class PointLineCostFunction {
  public:
-  PointLineCostFunction(const PointLinePair& pair, double time)
+  PointLineCostFunction(const PointLinePair &pair, double time)
       : pair_(pair), time_(time){};
 
   template <typename T>
-  bool operator()(const T* const q, const T* const p, T* residual) const;
+  bool operator()(const T *const q, const T *const p, T *residual) const;
 
-  static ceres::CostFunction* Create(const PointLinePair& pair, double time) {
+  static ceres::CostFunction *Create(const PointLinePair &pair, double time) {
     return new ceres::AutoDiffCostFunction<PointLineCostFunction, 3, 4, 3>(
         new PointLineCostFunction(pair, time));
   }
@@ -29,13 +29,13 @@ class PointLineCostFunction {
 
 class PointPlaneCostFunction {
  public:
-  PointPlaneCostFunction(const PointPlanePair& pair, double time)
+  PointPlaneCostFunction(const PointPlanePair &pair, double time)
       : pair_(pair), time_(time){};
 
   template <typename T>
-  bool operator()(const T* const q, const T* const p, T* residual) const;
+  bool operator()(const T *const q, const T *const p, T *residual) const;
 
-  static ceres::CostFunction* Create(const PointPlanePair& pair, double time) {
+  static ceres::CostFunction *Create(const PointPlanePair &pair, double time) {
     return new ceres::AutoDiffCostFunction<PointPlaneCostFunction, 1, 4, 3>(
         new PointPlaneCostFunction(pair, time));
   }
@@ -47,8 +47,8 @@ class PointPlaneCostFunction {
 };
 
 template <typename T>
-bool PointLineCostFunction::operator()(const T* const q, const T* const p,
-                                       T* residual) const {
+bool PointLineCostFunction::operator()(const T *const q, const T *const p,
+                                       T *residual) const {
   const auto pt = pair_.pt, pt1 = pair_.line.pt1, pt2 = pair_.line.pt2;
   Eigen::Matrix<T, 3, 1> pnt(T(pt.x), T(pt.y), T(pt.z));
   Eigen::Matrix<T, 3, 1> pnt1(T(pt1.x), T(pt1.y), T(pt1.z));
@@ -70,8 +70,8 @@ bool PointLineCostFunction::operator()(const T* const q, const T* const p,
 }
 
 template <typename T>
-bool PointPlaneCostFunction::operator()(const T* const q, const T* const p,
-                                        T* residual) const {
+bool PointPlaneCostFunction::operator()(const T *const q, const T *const p,
+                                        T *residual) const {
   const auto &pt = pair_.pt, &pt1 = pair_.plane.pt1, &pt2 = pair_.plane.pt2,
              &pt3 = pair_.plane.pt3;
   Eigen::Matrix<T, 3, 1> pnt(T(pt.x), T(pt.y), T(pt.z));

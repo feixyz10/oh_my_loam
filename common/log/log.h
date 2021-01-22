@@ -44,8 +44,8 @@ const LEVELS USER(ERROR.value + 100, "USER");
 #define ACHECK(cond) G3CHECK(cond)
 
 namespace common {
-void InitG3Logging(bool log_to_file = false, const std::string& prefix = "",
-                   const std::string& path = "./");
+void InitG3Logging(bool log_to_file = false, const std::string &prefix = "",
+                   const std::string &path = "./");
 }  // namespace common
 
 namespace g3 {
@@ -53,7 +53,7 @@ class CustomSink {
  public:
   CustomSink() = default;
 
-  explicit CustomSink(const std::string& log_file_name)
+  explicit CustomSink(const std::string &log_file_name)
       : log_file_name_(log_file_name), log_to_file_(true) {
     ofs_.reset(new std::ofstream(log_file_name));
   }
@@ -86,20 +86,20 @@ class CustomSink {
   bool log_to_file_{false};
   std::unique_ptr<std::ofstream> ofs_{nullptr};
 
-  std::string FormatedMessage(const g3::LogMessage& msg) const {
+  std::string FormatedMessage(const g3::LogMessage &msg) const {
     std::ostringstream oss;
     oss << "[" << msg.level()[0] << msg.timestamp("%Y%m%d %H:%M:%S.%f3") << " "
         << msg.file() << ":" << msg.line() << "] " << msg.message();
     return oss.str();
   }
 
-  std::string ColorFormatedMessage(const g3::LogMessage& msg) const {
+  std::string ColorFormatedMessage(const g3::LogMessage &msg) const {
     std::ostringstream oss;
     oss << GetColorCode(msg._level) << FormatedMessage(msg) << "\033[m";
     return oss.str();
   }
 
-  std::string GetColorCode(const LEVELS& level) const {
+  std::string GetColorCode(const LEVELS &level) const {
     if (level.value == WARNING.value) {
       return "\033[33m";  // yellow
     }

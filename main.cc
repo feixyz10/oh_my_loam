@@ -12,10 +12,10 @@
 using namespace common;
 using namespace oh_my_loam;
 
-void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
-                       OhMyLoam* const slam);
+void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr &msg,
+                       OhMyLoam *const slam);
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   // config
   YAMLConfig::Instance()->Init(argv[1]);
   bool log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr& msg,
-                       OhMyLoam* const slam) {
+void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr &msg,
+                       OhMyLoam *const slam) {
   PointCloudPtr cloud(new PointCloud);
   pcl::fromROSMsg(*msg, *cloud);
   double timestamp = msg->header.stamp.toSec();

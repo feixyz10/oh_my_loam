@@ -9,9 +9,13 @@ namespace common {
 
 class Timer {
  public:
-  Timer() { Tic(); }
+  Timer() {
+    Tic();
+  }
 
-  void Tic() { start_ = std::chrono::system_clock::now(); }
+  void Tic() {
+    start_ = std::chrono::system_clock::now();
+  }
 
   // unit: 's' = second, 'm' = millisecond, 'u' = microsecond
   double Toc(char unit = 'm');
@@ -23,7 +27,7 @@ class Timer {
 
 class TimerWrapper {
  public:
-  explicit TimerWrapper(const std::string& msg, double duration_ms = -1.0)
+  explicit TimerWrapper(const std::string &msg, double duration_ms = -1.0)
       : msg_(msg), duration_ms_(duration_ms) {
     timer_.Tic();
   };

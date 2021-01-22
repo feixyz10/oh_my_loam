@@ -13,7 +13,7 @@ class OhMyLoam {
 
   bool Init();
 
-  void Run(double timestamp, const common::PointCloudConstPtr& cloud_in);
+  void Run(double timestamp, const common::PointCloudConstPtr &cloud_in);
 
  private:
   std::unique_ptr<Extractor> extractor_{nullptr};
@@ -23,8 +23,8 @@ class OhMyLoam {
   // std::unique_ptr<Mapper> mapper_{nullptr};
 
   // remove outliers: nan and very close points
-  void RemoveOutliers(const common::PointCloud& cloud_in,
-                      common::PointCloud* const cloud_out) const;
+  void RemoveOutliers(const common::PointCloud &cloud_in,
+                      common::PointCloud *const cloud_out) const;
 
   std::vector<common::Pose3d> poses_;
 

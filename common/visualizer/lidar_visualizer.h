@@ -55,7 +55,9 @@ class LidarVisualizer {
     is_updated_ = true;
   }
 
-  std::string name() const { return name_; }
+  std::string name() const {
+    return name_;
+  }
 
  protected:
   void Run() {

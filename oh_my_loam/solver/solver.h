@@ -6,7 +6,7 @@
 namespace oh_my_loam {
 
 class PoseSolver {
-public:
+ public:
   PoseSolver(const common::Pose3d &pose);
 
   void AddPointLinePair(const PointLinePair &pair, double time);
@@ -18,7 +18,7 @@ public:
 
   common::Pose3d GetPose() const;
 
-private:
+ private:
   ceres::Problem problem_;
 
   ceres::LossFunction *loss_function_;
@@ -29,4 +29,4 @@ private:
   DISALLOW_COPY_AND_ASSIGN(PoseSolver)
 };
 
-} // namespace oh_my_loam
+}  // namespace oh_my_loam

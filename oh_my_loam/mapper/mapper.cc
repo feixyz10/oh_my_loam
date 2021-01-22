@@ -7,7 +7,7 @@ using namespace common;
 }  // namespace
 
 bool Mapper::Init() {
-  const auto& config = YAMLConfig::Instance()->config();
+  const auto &config = YAMLConfig::Instance()->config();
   config_ = config["mapper_config"];
   is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
   verbose_ = config_["vis"].as<bool>();

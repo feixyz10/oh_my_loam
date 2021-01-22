@@ -3,8 +3,8 @@
 
 namespace common {
 
-void InitG3Logging(bool log_to_file, const std::string& prefix,
-                   const std::string& path) {
+void InitG3Logging(bool log_to_file, const std::string &prefix,
+                   const std::string &path) {
   static std::unique_ptr<g3::LogWorker> worker;
   if (worker != nullptr) return;
   worker = std::move(g3::LogWorker::createLogWorker());

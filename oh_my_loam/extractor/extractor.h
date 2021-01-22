@@ -15,26 +15,28 @@ class Extractor {
 
   bool Init();
 
-  void Process(double timestamp, const common::PointCloudConstPtr& cloud,
-               std::vector<Feature>* const features);
+  void Process(double timestamp, const common::PointCloudConstPtr &cloud,
+               std::vector<Feature> *const features);
 
-  int num_scans() const { return num_scans_; }
+  int num_scans() const {
+    return num_scans_;
+  }
 
  protected:
-  virtual int GetScanID(const common::Point& pt) const = 0;
+  virtual int GetScanID(const common::Point &pt) const = 0;
 
-  virtual void SplitScan(const common::PointCloud& cloud,
-                         std::vector<TCTPointCloud>* const scans) const;
+  virtual void SplitScan(const common::PointCloud &cloud,
+                         std::vector<TCTPointCloud> *const scans) const;
 
-  virtual void ComputeCurvature(TCTPointCloud* const scan) const;
+  virtual void ComputeCurvature(TCTPointCloud *const scan) const;
 
-  virtual void AssignType(TCTPointCloud* const scan) const;
+  virtual void AssignType(TCTPointCloud *const scan) const;
 
-  virtual void GenerateFeature(const TCTPointCloud& scan,
-                               Feature* const feature) const;
+  virtual void GenerateFeature(const TCTPointCloud &scan,
+                               Feature *const feature) const;
 
-  virtual void Visualize(const common::PointCloudConstPtr& cloud,
-                         const std::vector<Feature>& features,
+  virtual void Visualize(const common::PointCloudConstPtr &cloud,
+                         const std::vector<Feature> &features,
                          double timestamp = 0.0);
 
   int num_scans_ = 0;
@@ -46,8 +48,8 @@ class Extractor {
   bool verbose_ = false;
 
  private:
-  void UpdateNeighborsPicked(const TCTPointCloud& scan, size_t ix,
-                             std::vector<bool>* const picked) const;
+  void UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
+                             std::vector<bool> *const picked) const;
 
   bool is_vis_ = false;
 

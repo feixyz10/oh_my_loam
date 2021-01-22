@@ -13,7 +13,7 @@ using namespace common;
 }  // namespace
 
 bool Extractor::Init() {
-  const auto& config = YAMLConfig::Instance()->config();
+  const auto &config = YAMLConfig::Instance()->config();
   config_ = config["extractor_config"];
   is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
   verbose_ = config_["verbose"].as<bool>();
@@ -22,8 +22,8 @@ bool Extractor::Init() {
   return true;
 }
 
-void Extractor::Process(double timestamp, const PointCloudConstPtr& cloud,
-                        std::vector<Feature>* const features) {
+void Extractor::Process(double timestamp, const PointCloudConstPtr &cloud,
+                        std::vector<Feature> *const features) {
   BLOCK_TIMER_START;
   if (cloud->size() < config_["min_point_num"].as<size_t>()) {
     AWARN << "Too few input points: num = " << cloud->size() << " (< "
@@ -35,12 +35,12 @@ void Extractor::Process(double timestamp, const PointCloudConstPtr& cloud,
   SplitScan(*cloud, &scans);
   AINFO_IF(verbose_) << "Extractor::SplitScan: " << BLOCK_TIMER_STOP_FMT;
   // compute curvature to each point
-  for (auto& scan : scans) {
+  for (auto &scan : scans) {
     ComputeCurvature(&scan);
   }
   AINFO_IF(verbose_) << "Extractor::ComputeCurvature: " << BLOCK_TIMER_STOP_FMT;
   // assign type to each point: FLAT, LESS_FLAT, NORMAL, LESS_SHARP or SHARP
-  for (auto& scan : scans) {
+  for (auto &scan : scans) {
     AssignType(&scan);
   }
   AINFO_IF(verbose_) << "Extractor::AssignType: " << BLOCK_TIMER_STOP_FMT;
@@ -54,12 +54,12 @@ void Extractor::Process(double timestamp, const PointCloudConstPtr& cloud,
   if (is_vis_) Visualize(cloud, *features, timestamp);
 }
 
-void Extractor::SplitScan(const PointCloud& cloud,
-                          std::vector<TCTPointCloud>* const scans) const {
+void Extractor::SplitScan(const PointCloud &cloud,
+                          std::vector<TCTPointCloud> *const scans) const {
   scans->resize(num_scans_);
   double yaw_start = -atan2(cloud.points[0].y, cloud.points[0].x);
   bool half_passed = false;
-  for (const auto& pt : cloud) {
+  for (const auto &pt : cloud) {
     int scan_id = GetScanID(pt);
     if (scan_id >= num_scans_ || scan_id < 0) continue;
     double yaw = -atan2(pt.y, pt.x);
@@ -76,9 +76,9 @@ void Extractor::SplitScan(const PointCloud& cloud,
   }
 }
 
-void Extractor::ComputeCurvature(TCTPointCloud* const scan) const {
+void Extractor::ComputeCurvature(TCTPointCloud *const scan) const {
   if (scan->size() <= 10 + kScanSegNum) return;
-  auto& pts = scan->points;
+  auto &pts = scan->points;
   for (size_t i = 5; i < pts.size() - 5; ++i) {
     float dx = pts[i - 5].x + pts[i - 4].x + pts[i - 3].x + pts[i - 2].x +
                pts[i - 1].x + pts[i + 1].x + pts[i + 2].x + pts[i + 3].x +
@@ -91,12 +91,12 @@ void Extractor::ComputeCurvature(TCTPointCloud* const scan) const {
                pts[i + 4].z + pts[i + 5].z - 10 * pts[i].z;
     pts[i].curvature = std::hypot(dx, dy, dz);
   }
-  RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint& pt) {
+  RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint &pt) {
     return !std::isfinite(pt.curvature);
   });
 }
 
-void Extractor::AssignType(TCTPointCloud* const scan) const {
+void Extractor::AssignType(TCTPointCloud *const scan) const {
   int pt_num = scan->size();
   if (pt_num < kScanSegNum) return;
   int seg_pt_num = (pt_num - 1) / kScanSegNum + 1;
@@ -155,9 +155,9 @@ void Extractor::AssignType(TCTPointCloud* const scan) const {
   }
 }
 
-void Extractor::GenerateFeature(const TCTPointCloud& scan,
-                                Feature* const feature) const {
-  for (const auto& pt : scan) {
+void Extractor::GenerateFeature(const TCTPointCloud &scan,
+                                Feature *const feature) const {
+  for (const auto &pt : scan) {
     TPoint point(pt.x, pt.y, pt.z, pt.time);
     switch (pt.type) {
       case PType::FLAT_SURF:
@@ -182,8 +182,8 @@ void Extractor::GenerateFeature(const TCTPointCloud& scan,
   feature->cloud_surf->swap(*dowm_sampled);
 }
 
-void Extractor::Visualize(const PointCloudConstPtr& cloud,
-                          const std::vector<Feature>& features,
+void Extractor::Visualize(const PointCloudConstPtr &cloud,
+                          const std::vector<Feature> &features,
                           double timestamp) {
   std::shared_ptr<ExtractorVisFrame> frame(new ExtractorVisFrame);
   frame->timestamp = timestamp;
@@ -192,8 +192,8 @@ void Extractor::Visualize(const PointCloudConstPtr& cloud,
   visualizer_->Render(frame);
 }
 
-void Extractor::UpdateNeighborsPicked(const TCTPointCloud& scan, size_t ix,
-                                      std::vector<bool>* const picked) const {
+void Extractor::UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
+                                      std::vector<bool> *const picked) const {
   auto DistSqure = [&](int i, int j) -> float {
     return DistanceSqure<TCTPoint>(scan[i], scan[j]);
   };

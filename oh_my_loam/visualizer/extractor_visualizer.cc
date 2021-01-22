@@ -9,7 +9,7 @@ void ExtractorVisualizer::Draw() {
   auto frame = GetCurrentFrame<ExtractorVisFrame>();
   DrawPointCloud<Point>(frame.cloud, GRAY, "cloud_raw");
   for (size_t i = 0; i < frame.features.size(); ++i) {
-    const auto& feature = frame.features[i];
+    const auto &feature = frame.features[i];
     std::string id_suffix = std::to_string(i);
     DrawPointCloud<TPoint>(feature.cloud_surf, BLUE, "cloud_surf" + id_suffix);
     DrawPointCloud<TPoint>(feature.cloud_flat_surf, CYAN,

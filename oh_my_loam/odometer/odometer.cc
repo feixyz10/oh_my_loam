@@ -22,14 +22,14 @@ bool Odometer::Init() {
 }
 
 void Odometer::Process(double timestamp, const std::vector<Feature> &features,
-                       Pose3d *const pose) {
+                       Pose3d *const pose_out) {
   BLOCK_TIMER_START;
   if (!is_initialized_) {
     UpdatePre(features);
     is_initialized_ = true;
-    pose_curr2last_ = Pose3d::Identity();
-    pose_curr2world_ = Pose3d::Identity();
-    *pose = Pose3d::Identity();
+    pose_curr2last_.SetIdentity();
+    pose_curr2world_.SetIdentity();
+    pose_out->SetIdentity();
     AWARN << "Odometer initialized....";
     return;
   }
@@ -59,7 +59,7 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     solver.Solve(5, verbose_, &pose_curr2last_);
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
-  *pose = pose_curr2world_;
+  *pose_out = pose_curr2world_;
   AINFO_IF(verbose_) << "Pose increase: " << pose_curr2last_.ToString();
   AINFO_IF(verbose_) << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(features);
