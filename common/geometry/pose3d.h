@@ -77,13 +77,13 @@ class Pose3d {
 
   // const Eigen::Quaterniond& r_quat() const { return r_quat_; }
 
-  Eigen::Quaterniond r_quat() const {
+  const Eigen::Quaterniond &r_quat() const {
     return r_quat_;
   }
 
   // const Eigen::Vector3d& t_vec() const { return t_vec_; }
 
-  Eigen::Vector3d t_vec() const {
+  const Eigen::Vector3d &t_vec() const {
     return t_vec_;
   }
 

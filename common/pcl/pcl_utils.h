@@ -6,41 +6,41 @@
 namespace common {
 
 // Distance squred of a point to origin
-template <typename PointType>
-inline double DistanceSqure(const PointType &pt) {
+template <typename PT>
+inline double DistanceSqure(const PT &pt) {
   return pt.x * pt.x + pt.y * pt.y + pt.z * pt.z;
 }
 
 // Distance squred of two points
-template <typename PointType>
-inline double DistanceSqure(const PointType &pt1, const PointType &pt2) {
+template <typename PT>
+inline double DistanceSqure(const PT &pt1, const PT &pt2) {
   return (pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y) +
          (pt1.z - pt2.z) * (pt1.z - pt2.z);
 }
 
 // Distance of a point to origin
-template <typename PointType>
-inline double Distance(const PointType &pt) {
+template <typename PT>
+inline double Distance(const PT &pt) {
   return std::sqrt(DistanceSqure(pt));
 }
 
 // Distance squred of two points
-template <typename PointType>
-inline double Distance(const PointType &pt1, const PointType &pt2) {
+template <typename PT>
+inline double Distance(const PT &pt1, const PT &pt2) {
   return std::sqrt(DistanceSqure(pt1, pt2));
 }
 
 // Check whether is a finite point: neither infinite nor nan
-template <typename PointType>
-inline double IsFinite(const PointType &pt) {
+template <typename PT>
+inline double IsFinite(const PT &pt) {
   return std::isfinite(pt.x) && std::isfinite(pt.y) && std::isfinite(pt.z);
 }
 
 // Remove point if the condition evaluated to true on it
-template <typename PointType>
-void RemovePoints(const pcl::PointCloud<PointType> &cloud_in,
-                  pcl::PointCloud<PointType> *const cloud_out,
-                  std::function<bool(const PointType &)> check,
+template <typename PT>
+void RemovePoints(const pcl::PointCloud<PT> &cloud_in,
+                  pcl::PointCloud<PT> *const cloud_out,
+                  std::function<bool(const PT &)> check,
                   std::vector<int> *const removed_indices = nullptr) {
   if (&cloud_in != cloud_out) {
     cloud_out->header = cloud_in.header;
@@ -62,11 +62,10 @@ void RemovePoints(const pcl::PointCloud<PointType> &cloud_in,
   cloud_out->is_dense = true;
 }
 
-template <typename PointType>
-void VoxelDownSample(
-    const typename pcl::PointCloud<PointType>::ConstPtr &cloud_in,
-    pcl::PointCloud<PointType> *const cloud_out, double voxel_size) {
-  pcl::VoxelGrid<PointType> filter;
+template <typename PT>
+void VoxelDownSample(const typename pcl::PointCloud<PT>::ConstPtr &cloud_in,
+                     pcl::PointCloud<PT> *const cloud_out, double voxel_size) {
+  pcl::VoxelGrid<PT> filter;
   filter.setInputCloud(cloud_in);
   filter.setLeafSize(voxel_size, voxel_size, voxel_size);
   filter.filter(*cloud_out);

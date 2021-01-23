@@ -7,9 +7,8 @@ namespace oh_my_loam {
 
 using common::Pose3d;
 
-template <typename PointType>
-void TransformPoint(const Pose3d &pose, const PointType &pt_in,
-                    PointType *const pt_out) {
+template <typename PT>
+void TransformPoint(const Pose3d &pose, const PT &pt_in, PT *const pt_out) {
   *pt_out = pt_in;
   Eigen::Vector3d pnt = pose * Eigen::Vector3d(pt_in.x, pt_in.y, pt_in.z);
   pt_out->x = pnt.x();
@@ -17,10 +16,10 @@ void TransformPoint(const Pose3d &pose, const PointType &pt_in,
   pt_out->z = pnt.z();
 }
 
-template <typename PointType>
-PointType TransformPoint(const Pose3d &pose, const PointType &pt_in) {
-  PointType pt_out;
-  TransformPoint<PointType>(pose, pt_in, &pt_out);
+template <typename PT>
+PT TransformPoint(const Pose3d &pose, const PT &pt_in) {
+  PT pt_out;
+  TransformPoint<PT>(pose, pt_in, &pt_out);
   return pt_out;
 }
 

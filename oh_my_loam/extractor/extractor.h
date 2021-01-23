@@ -37,7 +37,7 @@ class Extractor {
 
   virtual void Visualize(const common::PointCloudConstPtr &cloud,
                          const std::vector<Feature> &features,
-                         double timestamp = 0.0);
+                         double timestamp = 0.0) const;
 
   int num_scans_ = 0;
 

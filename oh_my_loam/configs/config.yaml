@@ -12,7 +12,7 @@ extractor_config:
   sharp_corner_point_num: 2
   corner_point_num: 20
   flat_surf_point_num: 4
-  surf_point_num: 50
+  surf_point_num: 30
   corner_point_curvature_th: 0.5
   surf_point_curvature_th: 0.5
   neighbor_point_dist_th: 0.1
@@ -21,8 +21,9 @@ extractor_config:
 # configs for odometer
 odometer_config:
   vis: true
-  verbose: false
+  verbose: true
   icp_iter_num: 2
+  solve_iter_num: 5
   match_dist_sq_th: 1
 
 # configs for mapper

@@ -31,21 +31,18 @@ class Odometer {
                  const std::vector<PointLinePair> &pl_pairs,
                  const std::vector<PointPlanePair> &pp_pairs,
                  double timestamp = 0.0) const;
-  void NearestKSearch(const std::vector<pcl::KdTreeFLANN<TPoint>> &kdtrees,
-                      const TPoint &query_pt, int k,
-                      std::vector<std::vector<int>> *const indices,
-                      std::vector<std::vector<float>> *const dists) const;
+
+  bool NearestSearch(const pcl::KdTreeFLANN<TPoint> &kdtree,
+                     const TPoint &query_pt, int k, float dist_sq_th,
+                     std::vector<int> *const indices) const;
 
   common::Pose3d pose_curr2world_;
   common::Pose3d pose_curr2last_;
 
-  std::vector<TPointCloudPtr> clouds_corn_pre_;
-  std::vector<TPointCloudPtr> clouds_surf_pre_;
-  TPointCloudPtr corn_pre_;
-  TPointCloudPtr surf_pre_;
-
-  std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_surf_;
-  std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_corn_;
+  std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_scan_surf_;
+  std::vector<pcl::KdTreeFLANN<TPoint>> kdtrees_scan_corn_;
+  pcl::KdTreeFLANN<TPoint> kdtree_corn_;
+  pcl::KdTreeFLANN<TPoint> kdtree_surf_;
 
   YAML::Node config_;
 

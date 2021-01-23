@@ -90,4 +90,4 @@ bool PointPlaneCostFunction::operator()(const T *const q, const T *const p,
   return true;
 }
 
-}  // oh_my_loam
+}  // namespace oh_my_loam

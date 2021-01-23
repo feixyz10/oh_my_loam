@@ -4,7 +4,7 @@
 
 namespace oh_my_loam {
 
-enum class PType {
+enum class PointType {
   FLAT_SURF = -2,
   SURF = -1,
   NORNAL = 0,
@@ -67,7 +67,7 @@ struct PointXYZTCT {
     struct {
       float time;
       float curvature;
-      PType type;
+      PointType type;
     };
     float data_c[4];
   };
@@ -76,11 +76,11 @@ struct PointXYZTCT {
     x = y = z = 0.0f;
     data[3] = 1.0f;
     time = curvature = 0.0f;
-    type = PType::NORNAL;
+    type = PointType::NORNAL;
   }
 
   PointXYZTCT(float x, float y, float z, float time = 0.0f,
-              float curvature = 0.0f, PType type = PType::NORNAL)
+              float curvature = 0.0f, PointType type = PointType::NORNAL)
       : x(x), y(y), z(z), time(time), curvature(curvature), type(type) {
     data[3] = 1.0f;
   }
@@ -92,7 +92,7 @@ struct PointXYZTCT {
     data[3] = 1.0f;
     time = 0.0f;
     curvature = 0.0f;
-    type = PType::NORNAL;
+    type = PointType::NORNAL;
   }
 
   PointXYZTCT(const TPoint &p) {
@@ -102,7 +102,7 @@ struct PointXYZTCT {
     data[3] = 1.0f;
     time = p.time;
     curvature = 0.0f;
-    type = PType::NORNAL;
+    type = PointType::NORNAL;
   }
 
   PointXYZTCT(const PointXYZTCT &p) {

@@ -118,18 +118,18 @@ class LidarVisualizer {
     return *static_cast<FrameT *>((*curr_frame_iter_).get());
   }
 
-  template <typename PointType>
-  void DrawPointCloud(
-      const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
-      const Color &color, const std::string &id, int point_size = 3) {
-    AddPointCloud<PointType>(cloud, color, id, viewer_.get(), point_size);
+  template <typename PT>
+  void DrawPointCloud(const typename pcl::PointCloud<PT>::ConstPtr &cloud,
+                      const Color &color, const std::string &id,
+                      int point_size = 3) {
+    AddPointCloud<PT>(cloud, color, id, viewer_.get(), point_size);
   }
 
-  template <typename PointType>
-  void DrawPointCloud(
-      const typename pcl::PointCloud<PointType>::ConstPtr &cloud,
-      const std::string &field, const std::string &id, int point_size = 3) {
-    AddPointCloud<PointType>(cloud, field, id, viewer_.get(), point_size);
+  template <typename PT>
+  void DrawPointCloud(const typename pcl::PointCloud<PT>::ConstPtr &cloud,
+                      const std::string &field, const std::string &id,
+                      int point_size = 3) {
+    AddPointCloud<PT>(cloud, field, id, viewer_.get(), point_size);
   }
 
   // visualizer name

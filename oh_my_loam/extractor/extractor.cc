@@ -9,11 +9,10 @@ namespace oh_my_loam {
 namespace {
 const int kScanSegNum = 6;
 const double kTwoPi = 2 * M_PI;
-using namespace common;
 }  // namespace
 
 bool Extractor::Init() {
-  const auto &config = YAMLConfig::Instance()->config();
+  const auto &config = common::YAMLConfig::Instance()->config();
   config_ = config["extractor_config"];
   is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
   verbose_ = config_["verbose"].as<bool>();
@@ -22,7 +21,8 @@ bool Extractor::Init() {
   return true;
 }
 
-void Extractor::Process(double timestamp, const PointCloudConstPtr &cloud,
+void Extractor::Process(double timestamp,
+                        const common::PointCloudConstPtr &cloud,
                         std::vector<Feature> *const features) {
   BLOCK_TIMER_START;
   if (cloud->size() < config_["min_point_num"].as<size_t>()) {
@@ -54,25 +54,25 @@ void Extractor::Process(double timestamp, const PointCloudConstPtr &cloud,
   if (is_vis_) Visualize(cloud, *features, timestamp);
 }
 
-void Extractor::SplitScan(const PointCloud &cloud,
+void Extractor::SplitScan(const common::PointCloud &cloud,
                           std::vector<TCTPointCloud> *const scans) const {
   scans->resize(num_scans_);
-  double yaw_start = -atan2(cloud.points[0].y, cloud.points[0].x);
+  double yaw_start = -std::atan2(cloud.points[0].y, cloud.points[0].x);
   bool half_passed = false;
   for (const auto &pt : cloud) {
     int scan_id = GetScanID(pt);
     if (scan_id >= num_scans_ || scan_id < 0) continue;
-    double yaw = -atan2(pt.y, pt.x);
-    double yaw_diff = NormalizeAngle(yaw - yaw_start);
+    double yaw = -std::atan2(pt.y, pt.x);
+    double yaw_diff = common::NormalizeAngle(yaw - yaw_start);
     if (yaw_diff > 0) {
       if (half_passed) yaw_start += kTwoPi;
     } else {
       half_passed = true;
       yaw_start += kTwoPi;
     }
-    (*scans)[scan_id].push_back({pt.x, pt.y, pt.z,
-                                 static_cast<float>(yaw_diff / kTwoPi),
-                                 std::nanf("")});
+    double time = std::min(yaw_diff / kTwoPi, 1.0) + scan_id;
+    scans->at(scan_id).push_back(
+        {pt.x, pt.y, pt.z, static_cast<float>(time), std::nanf("")});
   }
 }
 
@@ -91,7 +91,7 @@ void Extractor::ComputeCurvature(TCTPointCloud *const scan) const {
                pts[i + 4].z + pts[i + 5].z - 10 * pts[i].z;
     pts[i].curvature = std::hypot(dx, dy, dz);
   }
-  RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint &pt) {
+  common::RemovePoints<TCTPoint>(*scan, scan, [](const TCTPoint &pt) {
     return !std::isfinite(pt.curvature);
   });
 }
@@ -101,7 +101,7 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
   if (pt_num < kScanSegNum) return;
   int seg_pt_num = (pt_num - 1) / kScanSegNum + 1;
   std::vector<bool> picked(pt_num, false);
-  std::vector<int> indices = Range(pt_num);
+  std::vector<int> indices = common::Range(pt_num);
   int sharp_corner_point_num = config_["sharp_corner_point_num"].as<int>();
   int corner_point_num = config_["corner_point_num"].as<int>();
   int flat_surf_point_num = config_["flat_surf_point_num"].as<int>();
@@ -125,9 +125,9 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
           scan->at(ix).curvature > corner_point_curvature_th) {
         ++corner_point_picked_num;
         if (corner_point_picked_num <= sharp_corner_point_num) {
-          scan->at(ix).type = PType::SHARP_CORNER;
+          scan->at(ix).type = PointType::SHARP_CORNER;
         } else if (corner_point_picked_num <= corner_point_num) {
-          scan->at(ix).type = PType::CORNER;
+          scan->at(ix).type = PointType::CORNER;
         } else {
           break;
         }
@@ -142,9 +142,9 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
       if (!picked.at(ix) && scan->at(ix).curvature < surf_point_curvature_th) {
         ++surf_point_picked_num;
         if (surf_point_picked_num <= flat_surf_point_num) {
-          scan->at(ix).type = PType::FLAT_SURF;
+          scan->at(ix).type = PointType::FLAT_SURF;
         } else if (surf_point_picked_num <= surf_point_num) {
-          scan->at(ix).type = PType::SURF;
+          scan->at(ix).type = PointType::SURF;
         } else {
           break;
         }
@@ -160,31 +160,33 @@ void Extractor::GenerateFeature(const TCTPointCloud &scan,
   for (const auto &pt : scan) {
     TPoint point(pt.x, pt.y, pt.z, pt.time);
     switch (pt.type) {
-      case PType::FLAT_SURF:
-        feature->cloud_flat_surf->points.emplace_back(point);
+      case PointType::FLAT_SURF:
+        feature->cloud_flat_surf->push_back(point);
       // no break: FLAT_SURF points are also SURF points
-      case PType::SURF:
-        feature->cloud_surf->points.emplace_back(point);
+      case PointType::SURF:
+        feature->cloud_surf->push_back(point);
         break;
-      case PType::SHARP_CORNER:
-        feature->cloud_sharp_corner->points.emplace_back(point);
+      case PointType::SHARP_CORNER:
+        feature->cloud_sharp_corner->push_back(point);
       // no break: SHARP_CORNER points are also CORNER points
-      case PType::CORNER:
-        feature->cloud_corner->points.emplace_back(point);
+      case PointType::CORNER:
+        feature->cloud_corner->push_back(point);
         break;
       default:
+        feature->cloud_surf->push_back(point);
         break;
     }
   }
   TPointCloudPtr dowm_sampled(new TPointCloud);
-  VoxelDownSample<TPoint>(feature->cloud_surf, dowm_sampled.get(),
-                          config_["downsample_voxel_size"].as<double>());
-  feature->cloud_surf->swap(*dowm_sampled);
+  common::VoxelDownSample<TPoint>(
+      feature->cloud_surf, dowm_sampled.get(),
+      config_["downsample_voxel_size"].as<double>());
+  feature->cloud_surf = dowm_sampled;
 }
 
-void Extractor::Visualize(const PointCloudConstPtr &cloud,
+void Extractor::Visualize(const common::PointCloudConstPtr &cloud,
                           const std::vector<Feature> &features,
-                          double timestamp) {
+                          double timestamp) const {
   std::shared_ptr<ExtractorVisFrame> frame(new ExtractorVisFrame);
   frame->timestamp = timestamp;
   frame->cloud = cloud;
@@ -194,20 +196,20 @@ void Extractor::Visualize(const PointCloudConstPtr &cloud,
 
 void Extractor::UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
                                       std::vector<bool> *const picked) const {
-  auto DistSqure = [&](int i, int j) -> float {
-    return DistanceSqure<TCTPoint>(scan[i], scan[j]);
+  auto dist_sq = [&](size_t i, size_t j) -> double {
+    return common::DistanceSqure<TCTPoint>(scan[i], scan[j]);
   };
-  float neighbor_point_dist_th = config_["neighbor_point_dist_th"].as<float>();
+  double neighbor_point_dist_th = config_["neighbor_point_dist_th"].as<float>();
   for (size_t i = 1; i <= 5; ++i) {
     if (ix < i) break;
     if (picked->at(ix - i)) continue;
-    if (DistSqure(ix - i, ix - i + 1) > neighbor_point_dist_th) break;
+    if (dist_sq(ix - i, ix - i + 1) > neighbor_point_dist_th) break;
     picked->at(ix - i) = true;
   }
   for (size_t i = 1; i <= 5; ++i) {
     if (ix + i >= scan.size()) break;
     if (picked->at(ix + i)) continue;
-    if (DistSqure(ix + i, ix + i - 1) > neighbor_point_dist_th) break;
+    if (dist_sq(ix + i, ix + i - 1) > neighbor_point_dist_th) break;
     picked->at(ix + i) = true;
   }
 }
