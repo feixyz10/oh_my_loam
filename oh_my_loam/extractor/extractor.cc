@@ -9,6 +9,7 @@ namespace oh_my_loam {
 namespace {
 const int kScanSegNum = 6;
 const double kTwoPi = 2 * M_PI;
+const double kEps = 1e-6;
 }  // namespace
 
 bool Extractor::Init() {
@@ -70,7 +71,7 @@ void Extractor::SplitScan(const common::PointCloud &cloud,
       half_passed = true;
       yaw_start += kTwoPi;
     }
-    double time = std::min(yaw_diff / kTwoPi, 1.0) + scan_id;
+    double time = std::min(yaw_diff / kTwoPi, 1 - kEps) + scan_id;
     scans->at(scan_id).push_back(
         {pt.x, pt.y, pt.z, static_cast<float>(time), std::nanf("")});
   }
@@ -173,15 +174,10 @@ void Extractor::GenerateFeature(const TCTPointCloud &scan,
         feature->cloud_corner->push_back(point);
         break;
       default:
-        feature->cloud_surf->push_back(point);
+        // feature->cloud_surf->push_back(point);
         break;
     }
   }
-  TPointCloudPtr dowm_sampled(new TPointCloud);
-  common::VoxelDownSample<TPoint>(
-      feature->cloud_surf, dowm_sampled.get(),
-      config_["downsample_voxel_size"].as<double>());
-  feature->cloud_surf = dowm_sampled;
 }
 
 void Extractor::Visualize(const common::PointCloudConstPtr &cloud,
@@ -199,17 +195,18 @@ void Extractor::UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
   auto dist_sq = [&](size_t i, size_t j) -> double {
     return common::DistanceSqure<TCTPoint>(scan[i], scan[j]);
   };
-  double neighbor_point_dist_th = config_["neighbor_point_dist_th"].as<float>();
+  double neighbor_point_dist_sq_th =
+      config_["neighbor_point_dist_sq_th"].as<float>();
   for (size_t i = 1; i <= 5; ++i) {
     if (ix < i) break;
     if (picked->at(ix - i)) continue;
-    if (dist_sq(ix - i, ix - i + 1) > neighbor_point_dist_th) break;
+    if (dist_sq(ix - i, ix - i + 1) > neighbor_point_dist_sq_th) break;
     picked->at(ix - i) = true;
   }
   for (size_t i = 1; i <= 5; ++i) {
     if (ix + i >= scan.size()) break;
     if (picked->at(ix + i)) continue;
-    if (dist_sq(ix + i, ix + i - 1) > neighbor_point_dist_th) break;
+    if (dist_sq(ix + i, ix + i - 1) > neighbor_point_dist_sq_th) break;
     picked->at(ix + i) = true;
   }
 }

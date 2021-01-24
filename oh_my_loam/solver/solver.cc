@@ -2,6 +2,7 @@
 
 #include <Eigen/src/Core/Matrix.h>
 #include <ceres/loss_function.h>
+#include <ceres/types.h>
 
 #include "common/log/log.h"
 
@@ -29,9 +30,10 @@ bool PoseSolver::Solve(int max_iter_num, bool verbose,
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem_, &summary);
   AINFO_IF(verbose) << summary.BriefReport();
-  AWARN_IF(!summary.IsSolutionUsable()) << "Solution may be unusable";
+  AWARN_IF(summary.termination_type != ceres::CONVERGENCE)
+      << "Solve: no convergence";
   if (pose) *pose = common::Pose3d(r_quat_, t_vec_);
-  return summary.IsSolutionUsable();
+  return summary.termination_type == ceres::CONVERGENCE;
 }
 
 void PoseSolver::AddPointLinePair(const PointLinePair &pair, double time) {

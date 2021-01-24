@@ -7,13 +7,21 @@ namespace oh_my_loam {
 
 using common::Pose3d;
 
+inline int GetScanId(const TPoint &pt) {
+  return static_cast<int>(pt.time);
+}
+
+inline float GetTime(const TPoint &pt) {
+  return pt.time - GetScanId(pt);
+}
+
 template <typename PT>
 void TransformPoint(const Pose3d &pose, const PT &pt_in, PT *const pt_out) {
   *pt_out = pt_in;
-  Eigen::Vector3d pnt = pose * Eigen::Vector3d(pt_in.x, pt_in.y, pt_in.z);
-  pt_out->x = pnt.x();
-  pt_out->y = pnt.y();
-  pt_out->z = pnt.z();
+  Eigen::Vector3d p = pose * Eigen::Vector3d(pt_in.x, pt_in.y, pt_in.z);
+  pt_out->x = p.x();
+  pt_out->y = p.y();
+  pt_out->z = p.z();
 }
 
 template <typename PT>

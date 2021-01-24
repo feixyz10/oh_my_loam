@@ -29,7 +29,7 @@ class Pose3d {
   Pose3d Inv() const {
     Eigen::Quaterniond r_inv = r_quat_.inverse();
     Eigen::Vector3d t_inv = r_inv * t_vec_;
-    return {r_inv, -t_inv};
+    return Pose3d(r_inv, -t_inv);
   }
 
   Pose3d operator*(const Pose3d &rhs) const {
@@ -54,16 +54,11 @@ class Pose3d {
     return r_quat_ * vec;
   }
 
-  // Spherical linear interpolation to `pose_to`
+  // Spherical linear interpolation to `pose_to`， t \belong [0,1]
   Pose3d Interpolate(const Pose3d &pose_to, double t) const {
-    Pose3d pose_dst = t > 0 ? pose_to : (*this) * pose_to.Inv() * (*this);
-    t = t > 0 ? t : -t;
-    int whole = std::floor(t);
-    double frac = t - whole;
-    Eigen::Quaterniond r_interp = r_quat_.slerp(frac, pose_dst.r_quat_);
-    while (whole--) r_interp *= pose_dst.r_quat_;
-    Eigen::Vector3d t_interp = (pose_dst.t_vec_ - t_vec_) * t + t_vec_;
-    return {r_interp, t_interp};
+    Eigen::Quaterniond r_interp = r_quat_.slerp(t, pose_to.r_quat_);
+    Eigen::Vector3d t_interp = (pose_to.t_vec_ - t_vec_) * t + t_vec_;
+    return Pose3d(r_interp, t_interp);
   }
 
   std::string ToString() const {

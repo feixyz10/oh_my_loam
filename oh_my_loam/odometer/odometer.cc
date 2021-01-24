@@ -13,12 +13,6 @@ namespace oh_my_loam {
 namespace {
 int kNearScanN = 2;
 size_t kMinMatchNum = 10;
-int GetScanId(const TPoint &point) {
-  return static_cast<int>(point.time);
-}
-float GetTime(const TPoint &point) {
-  return point.time - GetScanId(point);
-}
 }  // namespace
 
 bool Odometer::Init() {
@@ -64,10 +58,10 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     }
     PoseSolver solver(pose_curr2last_);
     for (const auto &pair : pl_pairs) {
-      solver.AddPointLinePair(pair, pair.pt.time);
+      solver.AddPointLinePair(pair, GetTime(pair.pt));
     }
     for (const auto &pair : pp_pairs) {
-      solver.AddPointPlanePair(pair, pair.pt.time);
+      solver.AddPointPlanePair(pair, GetTime(pair.pt));
     }
     solver.Solve(config_["solve_iter_num"].as<int>(), verbose_,
                  &pose_curr2last_);
@@ -84,103 +78,81 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
 
 void Odometer::MatchCorn(const TPointCloud &src,
                          std::vector<PointLinePair> *const pairs) const {
-  double dist_sq_thresh = config_["match_dist_sq_th"].as<double>();
-  for (const auto &point : src) {
-    TPoint query_pt = TransformToStart(pose_curr2last_, point);
-    std::vector<int> indices(1);
-    std::vector<float> dists(1);
-    if (kdtree_corn_.nearestKSearch(query_pt, 1, indices, dists) != 1) {
+  double dist_sq_thresh = config_["corn_match_dist_sq_th"].as<double>();
+  for (const auto &pt : src) {
+    TPoint query_pt = TransformToStart(pose_curr2last_, pt);
+    std::vector<int> indices;
+    std::vector<float> dists;
+    if (kdtree_corn_.nearestKSearch(query_pt, 1, indices, dists) < 1) {
       continue;
     }
     if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = kdtree_corn_.getInputCloud()->at(indices[0]);
     int pt1_scan_id = GetScanId(pt1);
 
-    bool pt2_fount = false;
-    float min_pt2_dist_squre = dist_sq_thresh;
     TPoint pt2;
+    bool pt2_fount = false;
+    float min_pt2_dist_sq = dist_sq_thresh;
     int i_begin = std::max<int>(0, pt1_scan_id - kNearScanN);
     int i_end =
         std::min<int>(kdtrees_scan_corn_.size(), pt1_scan_id + kNearScanN + 1);
-    for (int i = i_begin; i < i_end && i != pt1_scan_id; ++i) {
+    for (int i = i_begin; i < i_end; ++i) {
+      if (i == pt1_scan_id) continue;
       const auto &kdtree = kdtrees_scan_corn_[i];
-      if (kdtree.nearestKSearch(query_pt, 1, indices, dists) != 0) {
+      if (kdtree.nearestKSearch(query_pt, 1, indices, dists) < 1) {
         continue;
       }
-      if (dists[0] < min_pt2_dist_squre) {
+      if (dists[0] < min_pt2_dist_sq) {
         pt2_fount = true;
         pt2 = kdtree.getInputCloud()->at(indices[0]);
-        min_pt2_dist_squre = dists[0];
+        min_pt2_dist_sq = dists[0];
       }
     }
     if (!pt2_fount) continue;
 
-    TPoint pt(point.x, point.y, point.z, GetTime(point));
-    pt1.time = GetTime(pt1);
-    pt2.time = GetTime(pt2);
     pairs->emplace_back(pt, pt1, pt2);
   }
 }
 
 void Odometer::MatchSurf(const TPointCloud &src,
                          std::vector<PointPlanePair> *const pairs) const {
-  double dist_sq_thresh = config_["match_dist_sq_th"].as<double>();
-  for (const auto &point : src) {
-    TPoint query_pt = TransformToStart(pose_curr2last_, point);
+  double dist_sq_thresh = config_["surf_match_dist_sq_th"].as<double>();
+  for (const auto &pt : src) {
+    TPoint query_pt = TransformToStart(pose_curr2last_, pt);
     std::vector<int> indices;
     std::vector<float> dists;
-    if (kdtree_surf_.nearestKSearch(query_pt, 2, indices, dists) != 2) {
+    if (kdtree_surf_.nearestKSearch(query_pt, 1, indices, dists) < 1) {
       continue;
     }
-    if (dists[0] >= dist_sq_thresh || dists[1] >= dist_sq_thresh) continue;
+    if (dists[0] >= dist_sq_thresh) continue;
     TPoint pt1 = kdtree_surf_.getInputCloud()->at(indices[0]);
     int pt1_scan_id = GetScanId(pt1);
 
-    TPoint pt2 = kdtree_surf_.getInputCloud()->at(indices[1]), pt3;
-    bool pt2_found = true, pt3_found = false;
-    int pt2_scan_id = GetScanId(pt2);
-    if (pt2_scan_id != pt1_scan_id) {
-      pt2_found = false;
-      if (std::abs(pt2_scan_id - pt1_scan_id) <= kNearScanN) {
-        pt3 = pt2;
-        pt3_found = true;
+    TPoint pt2;
+    bool pt2_fount = false;
+    float min_pt2_dist_sq = dist_sq_thresh;
+    int i_begin = std::max<int>(0, pt1_scan_id - kNearScanN);
+    int i_end =
+        std::min<int>(kdtrees_scan_surf_.size(), pt1_scan_id + kNearScanN + 1);
+    for (int i = i_begin; i < i_end; ++i) {
+      if (i == pt1_scan_id) continue;
+      const auto &kdtree = kdtrees_scan_surf_[i];
+      if (kdtree.nearestKSearch(query_pt, 1, indices, dists) < 1) {
+        continue;
+      }
+      if (dists[0] < min_pt2_dist_sq) {
+        pt2_fount = true;
+        pt2 = kdtree.getInputCloud()->at(indices[0]);
+        min_pt2_dist_sq = dists[0];
       }
     }
+    if (!pt2_fount) continue;
 
-    if (!pt2_found) {
-      const auto &kdtree = kdtrees_scan_surf_[pt1_scan_id];
-      if (kdtree.nearestKSearch(query_pt, 2, indices, dists) == 2) {
-        if (dists[1] < dist_sq_thresh) {
-          pt2 = kdtree.getInputCloud()->at(indices[1]);
-          pt2_found = true;
-        }
-      }
-    }
-    if (!pt2_found) continue;
+    const auto &kdtree = kdtrees_scan_surf_[pt1_scan_id];
+    if (kdtree.nearestKSearch(query_pt, 2, indices, dists) < 2) continue;
+    if (dists[1] >= dist_sq_thresh) continue;
+    TPoint pt3 = kdtree.getInputCloud()->at(indices[1]);
 
-    if (!pt3_found) {
-      float min_pt3_dist_squre = dist_sq_thresh;
-      int i_begin = std::max<int>(0, pt1_scan_id - kNearScanN);
-      int i_end = std::min<int>(kdtrees_scan_corn_.size(),
-                                pt1_scan_id + kNearScanN + 1);
-      for (int i = i_begin; i < i_end && i != pt1_scan_id; ++i) {
-        const auto &kdtree = kdtrees_scan_surf_[i];
-        if (kdtree.nearestKSearch(query_pt, 1, indices, dists) != 1) {
-          continue;
-        }
-        if (dists[0] < min_pt3_dist_squre) {
-          pt3 = kdtree.getInputCloud()->at(indices[0]);
-          pt3_found = true;
-          min_pt3_dist_squre = dists[0];
-        }
-      }
-    }
-    if (!pt3_found) continue;
-
-    TPoint pt(point.x, point.y, point.z, GetTime(point));
-    pt1.time = GetTime(pt1);
-    pt2.time = GetTime(pt2);
-    pt3.time = GetTime(pt3);
     pairs->emplace_back(pt, pt1, pt2, pt3);
   }
 }
@@ -188,12 +160,12 @@ void Odometer::MatchSurf(const TPointCloud &src,
 void Odometer::UpdatePre(const std::vector<Feature> &features) {
   kdtrees_scan_corn_.resize(features.size());
   kdtrees_scan_surf_.resize(features.size());
-  TPointCloudPtr corn_pre(new TPointCloud);
   TPointCloudPtr surf_pre(new TPointCloud);
-  TPointCloudPtr scan_corn_pre(new TPointCloud);
-  TPointCloudPtr scan_surf_pre(new TPointCloud);
+  TPointCloudPtr corn_pre(new TPointCloud);
   for (size_t i = 0; i < features.size(); ++i) {
     const auto &feature = features[i];
+    TPointCloudPtr scan_corn_pre(new TPointCloud);
+    TPointCloudPtr scan_surf_pre(new TPointCloud);
     scan_corn_pre->resize(feature.cloud_corner->size());
     scan_surf_pre->resize(feature.cloud_surf->size());
     for (size_t j = 0; j < feature.cloud_corner->size(); ++j) {
