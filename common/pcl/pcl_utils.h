@@ -5,15 +5,15 @@
 
 namespace common {
 
-// Distance squred of a point to origin
+// Distance squared of a point to origin
 template <typename PT>
-inline double DistanceSqure(const PT &pt) {
+inline double DistanceSquare(const PT &pt) {
   return pt.x * pt.x + pt.y * pt.y + pt.z * pt.z;
 }
 
-// Distance squred of two points
+// Distance squared of two points
 template <typename PT>
-inline double DistanceSqure(const PT &pt1, const PT &pt2) {
+inline double DistanceSquare(const PT &pt1, const PT &pt2) {
   return (pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y) +
          (pt1.z - pt2.z) * (pt1.z - pt2.z);
 }
@@ -21,13 +21,13 @@ inline double DistanceSqure(const PT &pt1, const PT &pt2) {
 // Distance of a point to origin
 template <typename PT>
 inline double Distance(const PT &pt) {
-  return std::sqrt(DistanceSqure(pt));
+  return std::sqrt(DistanceSquare(pt));
 }
 
 // Distance squred of two points
 template <typename PT>
 inline double Distance(const PT &pt1, const PT &pt2) {
-  return std::sqrt(DistanceSqure(pt1, pt2));
+  return std::sqrt(DistanceSquare(pt1, pt2));
 }
 
 // Check whether is a finite point: neither infinite nor nan

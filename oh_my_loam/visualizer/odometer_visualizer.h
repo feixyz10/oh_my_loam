@@ -6,8 +6,8 @@
 namespace oh_my_loam {
 
 struct OdometerVisFrame : public common::LidarVisFrame {
-  TPointCloudPtr cloud_surf;
-  TPointCloudPtr cloud_corner;
+  TPointCloudConstPtr cloud_surf;
+  TPointCloudConstPtr cloud_corn;
   std::vector<PointLinePair> pl_pairs;
   std::vector<PointPlanePair> pp_pairs;
   common::Pose3d pose_curr2last;
@@ -22,6 +22,19 @@ class OdometerVisualizer : public common::LidarVisualizer {
 
  private:
   void Draw() override;
+
+  void DrawCorn(const Pose3d &pose, const std::vector<PointLinePair> &pairs);
+
+  void DrawSurf(const Pose3d &pose, const std::vector<PointPlanePair> &pairs);
+
+  void DrawTrajectory();
+
+  void KeyboardEventCallback(
+      const pcl::visualization::KeyboardEvent &event) override;
+
+  bool trans_ = true;
+  bool corn_connect_ = false;
+  bool surf_connect_ = false;
 
   std::deque<common::Pose3d> poses_;
 };

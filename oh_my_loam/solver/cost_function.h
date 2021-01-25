@@ -59,10 +59,22 @@ bool PointLineCostFunction::operator()(const T *const r_quat,
   Eigen::Matrix<T, 3, 1> p(T(pt.x), T(pt.y), T(pt.z));
   Eigen::Matrix<T, 3, 1> p1(T(pt1.x), T(pt1.y), T(pt1.z));
   Eigen::Matrix<T, 3, 1> p2(T(pt2.x), T(pt2.y), T(pt2.z));
+  // if constexpr (!std::is_arithmetic<T>::value) {
+  //   AERROR << p.x().a << ", " << p.y().a << ", " << p.z().a;
+  //   AERROR << p1.x().a << ", " << p1.y().a << ", " << p1.z().a;
+  //   AERROR << p2.x().a << ", " << p2.y().a << ", " << p2.z().a;
+  // }
 
   Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
   Eigen::Quaternion<T> r_interp =
       Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
+  // if constexpr (!std::is_arithmetic<T>::value) {
+  //   AERROR << time_;
+  //   AERROR << r.w().a << " " << r.x().a << ", " << r.y().a << ", " <<
+  //   r.z().a; AERROR << r_interp.w().a << " " << r_interp.x().a << ", " <<
+  //   r_interp.y().a
+  //          << ", " << r_interp.z().a;
+  // }
   Eigen::Matrix<T, 3, 1> t(T(time_) * t_vec[0], T(time_) * t_vec[1],
                            T(time_) * t_vec[2]);
   Eigen::Matrix<T, 3, 1> p0 = r_interp * p + t;
@@ -73,9 +85,9 @@ bool PointLineCostFunction::operator()(const T *const r_quat,
   residual[0] = area[0] / base_length;
   residual[1] = area[1] / base_length;
   residual[2] = area[2] / base_length;
-  if constexpr (!std::is_arithmetic<T>::value) {
-    AERROR << p.transpose() << ", ";
-  }
+  // if constexpr (!std::is_arithmetic<T>::value) {
+  //   AERROR << base_length.a;
+  // }
   return true;
 }
 
@@ -99,9 +111,6 @@ bool PointPlaneCostFunction::operator()(const T *const r_quat,
 
   Eigen::Matrix<T, 3, 1> normal = (p2 - p1).cross(p3 - p1).normalized();
   residual[0] = (p0 - p1).dot(normal);
-  if constexpr (!std::is_arithmetic<T>::value) {
-    AERROR << "ppres" << residual[0].a;
-  }
   return true;
 }
 

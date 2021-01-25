@@ -27,7 +27,8 @@ class Odometer {
   void MatchSurf(const TPointCloud &src,
                  std::vector<PointPlanePair> *const pairs) const;
 
-  void Visualize(const std::vector<Feature> &features,
+  void Visualize(const TPointCloudConstPtr &cloud_corn,
+                 const TPointCloudConstPtr &cloud_surf,
                  const std::vector<PointLinePair> &pl_pairs,
                  const std::vector<PointPlanePair> &pp_pairs,
                  double timestamp = 0.0) const;

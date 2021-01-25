@@ -48,6 +48,8 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr &msg,
   PointCloudPtr cloud(new PointCloud);
   pcl::fromROSMsg(*msg, *cloud);
   double timestamp = msg->header.stamp.toSec();
-  AUSER << "Timestamp: " << FMT_TIMESTAMP(timestamp);
+  static size_t frame_id = 0;
+  AINFO << "Ohmyloam: frame_id = " << ++frame_id
+        << ", timestamp = " << FMT_TIMESTAMP(timestamp);
   slam->Run(timestamp, cloud);
 }

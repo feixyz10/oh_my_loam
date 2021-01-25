@@ -7,7 +7,7 @@ using namespace common;
 
 void ExtractorVisualizer::Draw() {
   auto frame = GetCurrentFrame<ExtractorVisFrame>();
-  DrawPointCloud<Point>(frame.cloud, GRAY, "cloud_raw");
+  DrawPointCloud<Point>(frame.cloud, DRAK_GRAY, "cloud_raw");
   for (size_t i = 0; i < frame.features.size(); ++i) {
     const auto &feature = frame.features[i];
     std::string id_suffix = std::to_string(i);

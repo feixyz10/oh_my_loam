@@ -10,11 +10,6 @@
 
 namespace oh_my_loam {
 
-namespace {
-int kNearScanN = 2;
-size_t kMinMatchNum = 10;
-}  // namespace
-
 bool Odometer::Init() {
   const auto &config = common::YAMLConfig::Instance()->config();
   config_ = config["odometer_config"];
@@ -33,17 +28,19 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     pose_curr2last_.SetIdentity();
     pose_curr2world_.SetIdentity();
     pose_out->SetIdentity();
-    AWARN << "Odometer initialized....";
+    AINFO << "Odometer initialized....";
     return;
   }
   BLOCK_TIMER_START;
-  AINFO << "Pose before: " << pose_curr2world_.ToString();
-  std::vector<PointLinePair> pl_pairs;
+  const auto &cloud_corn = kdtree_corn_.getInputCloud();
+  const auto &cloud_surf = kdtree_surf_.getInputCloud();
+  AINFO_IF(verbose_) << "Points to be matched: " << cloud_corn->size() << " + "
+                     << cloud_surf->size();
   std::vector<PointPlanePair> pp_pairs;
-  AINFO_IF(verbose_) << "Points to be matched: "
-                     << kdtree_corn_.getInputCloud()->size() << " + "
-                     << kdtree_surf_.getInputCloud()->size();
+  std::vector<PointLinePair> pl_pairs;
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
+    std::vector<PointLinePair>().swap(pl_pairs);
+    std::vector<PointPlanePair>().swap(pp_pairs);
     for (const auto &feature : features) {
       MatchCorn(*feature.cloud_sharp_corner, &pl_pairs);
       MatchSurf(*feature.cloud_flat_surf, &pp_pairs);
@@ -51,7 +48,8 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     AINFO_IF(verbose_) << "Iter " << i
                        << ": matched num: point2line = " << pl_pairs.size()
                        << ", point2plane = " << pp_pairs.size();
-    if (pl_pairs.size() + pp_pairs.size() < kMinMatchNum) {
+    if (pl_pairs.size() + pp_pairs.size() <
+        config_["min_correspondence_num"].as<size_t>()) {
       AWARN << "Too less correspondence: " << pl_pairs.size() << " + "
             << pp_pairs.size();
       continue;
@@ -63,17 +61,19 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     for (const auto &pair : pp_pairs) {
       solver.AddPointPlanePair(pair, GetTime(pair.pt));
     }
-    solver.Solve(config_["solve_iter_num"].as<int>(), verbose_,
-                 &pose_curr2last_);
-    AINFO << "Odometer::ICP: iter_" << i << ": " << BLOCK_TIMER_STOP_FMT;
+    bool is_converge = solver.Solve(config_["solve_iter_num"].as<int>(),
+                                    verbose_, &pose_curr2last_);
+    AWARN_IF(!is_converge) << "Solve: no_convergence";
+    AINFO_IF(verbose_) << "Odometer::ICP: iter_" << i << ": "
+                       << BLOCK_TIMER_STOP_FMT;
   }
   pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
   *pose_out = pose_curr2world_;
-  AINFO << "Pose increase: " << pose_curr2last_.ToString();
-  AINFO << "Pose after: " << pose_curr2world_.ToString();
+  AINFO_IF(verbose_) << "Pose increase: " << pose_curr2last_.ToString();
+  AINFO_IF(verbose_) << "Pose after: " << pose_curr2world_.ToString();
   UpdatePre(features);
   AINFO << "Odometer::Porcess: " << BLOCK_TIMER_STOP_FMT;
-  if (is_vis_) Visualize(features, pl_pairs, pp_pairs);
+  if (is_vis_) Visualize(cloud_corn, cloud_surf, pl_pairs, pp_pairs);
 }
 
 void Odometer::MatchCorn(const TPointCloud &src,
@@ -90,12 +90,13 @@ void Odometer::MatchCorn(const TPointCloud &src,
     TPoint pt1 = kdtree_corn_.getInputCloud()->at(indices[0]);
     int pt1_scan_id = GetScanId(pt1);
 
+    int nearby_scan_num = config_["nearby_scan_num"].as<int>();
     TPoint pt2;
     bool pt2_fount = false;
     float min_pt2_dist_sq = dist_sq_thresh;
-    int i_begin = std::max<int>(0, pt1_scan_id - kNearScanN);
-    int i_end =
-        std::min<int>(kdtrees_scan_corn_.size(), pt1_scan_id + kNearScanN + 1);
+    int i_begin = std::max<int>(0, pt1_scan_id - nearby_scan_num);
+    int i_end = std::min<int>(kdtrees_scan_corn_.size(),
+                              pt1_scan_id + nearby_scan_num + 1);
     for (int i = i_begin; i < i_end; ++i) {
       if (i == pt1_scan_id) continue;
       const auto &kdtree = kdtrees_scan_corn_[i];
@@ -128,12 +129,13 @@ void Odometer::MatchSurf(const TPointCloud &src,
     TPoint pt1 = kdtree_surf_.getInputCloud()->at(indices[0]);
     int pt1_scan_id = GetScanId(pt1);
 
+    int nearby_scan_num = config_["nearby_scan_num"].as<int>();
     TPoint pt2;
     bool pt2_fount = false;
     float min_pt2_dist_sq = dist_sq_thresh;
-    int i_begin = std::max<int>(0, pt1_scan_id - kNearScanN);
-    int i_end =
-        std::min<int>(kdtrees_scan_surf_.size(), pt1_scan_id + kNearScanN + 1);
+    int i_begin = std::max<int>(0, pt1_scan_id - nearby_scan_num);
+    int i_end = std::min<int>(kdtrees_scan_surf_.size(),
+                              pt1_scan_id + nearby_scan_num + 1);
     for (int i = i_begin; i < i_end; ++i) {
       if (i == pt1_scan_id) continue;
       const auto &kdtree = kdtrees_scan_surf_[i];
@@ -185,12 +187,15 @@ void Odometer::UpdatePre(const std::vector<Feature> &features) {
   kdtree_surf_.setInputCloud(surf_pre);
 }
 
-void Odometer::Visualize(const std::vector<Feature> &features,
+void Odometer::Visualize(const TPointCloudConstPtr &cloud_corn,
+                         const TPointCloudConstPtr &cloud_surf,
                          const std::vector<PointLinePair> &pl_pairs,
                          const std::vector<PointPlanePair> &pp_pairs,
                          double timestamp) const {
   std::shared_ptr<OdometerVisFrame> frame(new OdometerVisFrame);
   frame->timestamp = timestamp;
+  frame->cloud_corn = cloud_corn;
+  frame->cloud_surf = cloud_surf;
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
   frame->pose_curr2last = pose_curr2last_;
