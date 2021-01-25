@@ -15,7 +15,8 @@ bool Mapper::Init() {
   return true;
 }
 
-void Mapper::Process() {}
+void Mapper::Process(double timestamp, const std::vector<Feature> &features,
+                     Pose3d *const pose_out) {}
 
 void Mapper::Visualize() {}
 

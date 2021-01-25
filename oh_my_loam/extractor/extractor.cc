@@ -107,8 +107,6 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
   int seg_num = config_["scan_seg_num"].as<int>();
   if (pt_num < seg_num) return;
   int seg_pt_num = (pt_num - 1) / seg_num + 1;
-  AERROR << pt_num << " " << seg_num << " " << seg_pt_num;
-
   std::vector<bool> picked(pt_num, false);
   std::vector<int> indices = common::Range(pt_num);
   int sharp_corner_point_num = config_["sharp_corner_point_num"].as<int>();
@@ -121,6 +119,7 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
   for (int seg = 0; seg < seg_num; ++seg) {
     int b = seg * seg_pt_num;
     int e = std::min((seg + 1) * seg_pt_num, pt_num);
+    if (b >= e) break;
     // sort by curvature for each segment: large -> small
     std::sort(indices.begin() + b, indices.begin() + e, [&](int i, int j) {
       return scan->at(i).curvature > scan->at(j).curvature;
@@ -128,7 +127,7 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
     // pick corner points
     int corner_point_picked_num = 0;
     for (int i = b; i < e; ++i) {
-      size_t ix = indices[i];
+      int ix = indices[i];
       if (!picked.at(ix) &&
           scan->at(ix).curvature > corner_point_curvature_th) {
         ++corner_point_picked_num;
@@ -146,7 +145,7 @@ void Extractor::AssignType(TCTPointCloud *const scan) const {
     // pick surface points
     int surf_point_picked_num = 0;
     for (int i = e - 1; i >= b; --i) {
-      size_t ix = indices[i];
+      int ix = indices[i];
       if (!picked.at(ix) && scan->at(ix).curvature < surf_point_curvature_th) {
         ++surf_point_picked_num;
         if (surf_point_picked_num <= flat_surf_point_num) {
@@ -200,21 +199,21 @@ void Extractor::Visualize(const common::PointCloudConstPtr &cloud,
   visualizer_->Render(frame);
 }
 
-void Extractor::UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
+void Extractor::UpdateNeighborsPicked(const TCTPointCloud &scan, int ix,
                                       std::vector<bool> *const picked) const {
   auto dist_sq = [&](size_t i, size_t j) -> double {
     return common::DistanceSquare<TCTPoint>(scan[i], scan[j]);
   };
   double neighbor_point_dist_sq_th =
       config_["neighbor_point_dist_sq_th"].as<float>();
-  for (size_t i = 1; i <= 5; ++i) {
+  for (int i = 1; i <= 5; ++i) {
     if (ix - i < 0) break;
     if (picked->at(ix - i)) continue;
     if (dist_sq(ix - i, ix - i + 1) > neighbor_point_dist_sq_th) break;
     picked->at(ix - i) = true;
   }
-  for (size_t i = 1; i <= 5; ++i) {
-    if (ix + i >= scan.size()) break;
+  for (int i = 1; i <= 5; ++i) {
+    if (static_cast<size_t>(ix + i) >= scan.size()) break;
     if (picked->at(ix + i)) continue;
     if (dist_sq(ix + i, ix + i - 1) > neighbor_point_dist_sq_th) break;
     picked->at(ix + i) = true;

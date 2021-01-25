@@ -22,6 +22,8 @@ class Extractor {
     return num_scans_;
   }
 
+  virtual void Reset() {}
+
  protected:
   virtual int GetScanID(const common::Point &pt) const = 0;
 
@@ -48,7 +50,7 @@ class Extractor {
   bool verbose_ = false;
 
  private:
-  void UpdateNeighborsPicked(const TCTPointCloud &scan, size_t ix,
+  void UpdateNeighborsPicked(const TCTPointCloud &scan, int ix,
                              std::vector<bool> *const picked) const;
 
   bool is_vis_ = false;

@@ -29,6 +29,7 @@ class YAMLConfig {
 
  private:
   std::unique_ptr<YAML::Node> config_{nullptr};
+
   DECLARE_SINGLETON(YAMLConfig);
 };
 

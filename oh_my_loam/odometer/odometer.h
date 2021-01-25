@@ -18,6 +18,8 @@ class Odometer {
   void Process(double timestamp, const std::vector<Feature> &features,
                common::Pose3d *const pose_out);
 
+  void Reset();
+
  protected:
   void UpdatePre(const std::vector<Feature> &features);
 

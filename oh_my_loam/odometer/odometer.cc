@@ -20,6 +20,10 @@ bool Odometer::Init() {
   return true;
 }
 
+void Odometer::Reset() {
+  is_initialized_ = false;
+}
+
 void Odometer::Process(double timestamp, const std::vector<Feature> &features,
                        Pose3d *const pose_out) {
   if (!is_initialized_) {
