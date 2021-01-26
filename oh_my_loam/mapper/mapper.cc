@@ -15,8 +15,19 @@ bool Mapper::Init() {
   return true;
 }
 
-void Mapper::Process(double timestamp, const std::vector<Feature> &features,
-                     Pose3d *const pose_out) {}
+void Mapper::Reset() {}
+
+void Mapper::Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
+                     const TPointCloudConstPtr &cloud_surf,
+                     common::Pose3d *const pose_out) {
+  if (!is_initialized_) {
+    cloud_corn_map_ = cloud_corn;
+    cloud_surf_map_ = cloud_surf;
+    pose_out->SetIdentity();
+    is_initialized_ = true;
+    return;
+  }
+}
 
 void Mapper::Visualize() {}
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "extractor.h"
+#include "oh_my_loam/extractor/extractor.h"
 
 namespace oh_my_loam {
 

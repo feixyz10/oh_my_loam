@@ -49,7 +49,7 @@ target_link_libraries(main
   oh_my_loam
   extractor
   odometer
-  # mapper
+  mapper
   solver
   ${CERES_LIBRARIES}
   visualizer

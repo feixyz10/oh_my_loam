@@ -36,10 +36,6 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     return;
   }
   BLOCK_TIMER_START;
-  const auto &cloud_corn = kdtree_corn_.getInputCloud();
-  const auto &cloud_surf = kdtree_surf_.getInputCloud();
-  AINFO_IF(verbose_) << "Points to be matched: " << cloud_corn->size() << " + "
-                     << cloud_surf->size();
   std::vector<PointPlanePair> pp_pairs;
   std::vector<PointLinePair> pl_pairs;
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
@@ -71,13 +67,13 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     AINFO_IF(verbose_) << "Odometer::ICP: iter_" << i << ": "
                        << BLOCK_TIMER_STOP_FMT;
   }
-  pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
-  *pose_out = pose_curr2world_;
+  *pose_out = *pose_out * pose_curr2last_;
+  pose_curr2world_ = *pose_out;
   AINFO_IF(verbose_) << "Pose increase: " << pose_curr2last_.ToString();
-  AINFO_IF(verbose_) << "Pose after: " << pose_curr2world_.ToString();
+  // mush called before calling UpdatePre
+  if (is_vis_) Visualize(pl_pairs, pp_pairs);
   UpdatePre(features);
   AINFO << "Odometer::Porcess: " << BLOCK_TIMER_STOP_FMT;
-  if (is_vis_) Visualize(cloud_corn, cloud_surf, pl_pairs, pp_pairs);
 }
 
 void Odometer::MatchCorn(const TPointCloud &src,
@@ -191,15 +187,13 @@ void Odometer::UpdatePre(const std::vector<Feature> &features) {
   kdtree_surf_.setInputCloud(surf_pre);
 }
 
-void Odometer::Visualize(const TPointCloudConstPtr &cloud_corn,
-                         const TPointCloudConstPtr &cloud_surf,
-                         const std::vector<PointLinePair> &pl_pairs,
+void Odometer::Visualize(const std::vector<PointLinePair> &pl_pairs,
                          const std::vector<PointPlanePair> &pp_pairs,
                          double timestamp) const {
   std::shared_ptr<OdometerVisFrame> frame(new OdometerVisFrame);
   frame->timestamp = timestamp;
-  frame->cloud_corn = cloud_corn;
-  frame->cloud_surf = cloud_surf;
+  frame->cloud_corn = kdtree_corn_.getInputCloud();
+  frame->cloud_surf = kdtree_surf_.getInputCloud();
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
   frame->pose_curr2last = pose_curr2last_;

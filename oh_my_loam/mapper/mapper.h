@@ -15,11 +15,16 @@ class Mapper {
 
   bool Init();
 
-  void Process(double timestamp, const std::vector<Feature> &features,
+  void Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
+               const TPointCloudConstPtr &cloud_surf,
                common::Pose3d *const pose_out);
 
-  common::PointCloudConstPtr map() const {
-    return cloud_map_;
+  TPointCloudConstPtr cloud_corn_map() const {
+    return cloud_corn_map_;
+  }
+
+  TPointCloudConstPtr cloud_surf_map() const {
+    return cloud_corn_map_;
   }
 
   void Reset();
@@ -27,13 +32,12 @@ class Mapper {
  private:
   void Visualize();
 
-  common::PointCloudPtr cloud_map_;
-
-  common::Pose3d pose_curr2world_;
+  TPointCloudPtr cloud_corn_map_;
+  TPointCloudPtr cloud_surf_map_;
 
   YAML::Node config_;
 
-  bool is_initialized = false;
+  bool is_initialized_ = false;
 
   bool is_vis_ = false;
 

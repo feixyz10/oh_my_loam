@@ -33,11 +33,12 @@ bool OhMyLoam::Init() {
 }
 
 void OhMyLoam::Reset() {
-  timestamp_last_ = timestamp_last_mapping_ = 0.0;
   extractor_->Reset();
   odometer_->Reset();
   mapper_->Reset();
-  std::vector<common::Pose3d>().swap(poses_);
+  std::vector<TimePose>().swap(poses_curr2world_);
+  std::lock_guard<std::mutex> lock(mutex_);
+  pose_mapping_updated_ = true;
 }
 
 void OhMyLoam::Run(double timestamp,
@@ -46,12 +47,40 @@ void OhMyLoam::Run(double timestamp,
   RemoveOutliers(*cloud_in, cloud.get());
   std::vector<Feature> features;
   extractor_->Process(timestamp, cloud, &features);
-  Pose3d pose;
-  odometer_->Process(timestamp, features, &pose);
-  poses_.emplace_back(pose);
-  if (!IsMapping(timestamp)) return;
-  mapper_->Process();
+  FusionOdometryMapping();
+  auto pose_odom =
+      poses_curr2world_.empty() ? TimePose() : poses_curr2world_.back();
+  odometer_->Process(timestamp, features, &pose_odom.pose);
+  poses_curr2world_.push_back(pose_odom);
+  const auto &cloud_corn = odometer_->cloud_corn();
+  const auto &cloud_surf = odometer_->cloud_surf();
+
+  if (!pose_mapping_updated_) return;
+  mapping_thread_.reset(new std::thread(&OhMyLoam::MappingProcess, this,
+                                        timestamp, cloud_corn, cloud_surf));
+  if (mapping_thread_->joinable()) mapping_thread_->detach();
 }
+
+void OhMyLoam::MappingProcess(double timestamp,
+                              const TPointCloudConstPtr &cloud_corn,
+                              const TPointCloudConstPtr &cloud_surf) {
+  TimePose pose;
+  pose.timestamp = timestamp;
+  mapper_->Process(timestamp, cloud_corn, cloud_corn, &pose.pose);
+  std::lock_guard<std::mutex> lock(mutex_);
+  pose_mapping_ = pose;
+  pose_mapping_updated_ = true;
+}
+
+void OhMyLoam::FusionOdometryMapping() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  TimePose pose_m = pose_mapping_;
+  pose_mapping_updated_ = false;
+  for (;;) {
+  }
+}
+
+void OhMyLoam::Visualize(double timestamp) {}
 
 void OhMyLoam::RemoveOutliers(const common::PointCloud &cloud_in,
                               common::PointCloud *const cloud_out) const {
@@ -60,11 +89,6 @@ void OhMyLoam::RemoveOutliers(const common::PointCloud &cloud_in,
            common::DistanceSquare<common::Point>(pt) <
                kPointMinDist * kPointMinDist;
   });
-}
-
-bool OhMyLoam::IsMapping(double timestamp) const {
-  return std::abs(timestamp - timestamp_last_mapping_) >=
-         config_["mapper_config"]["process_period"].as<double>();
 }
 
 }  // namespace oh_my_loam

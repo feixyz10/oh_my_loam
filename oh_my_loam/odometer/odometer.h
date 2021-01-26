@@ -18,6 +18,14 @@ class Odometer {
   void Process(double timestamp, const std::vector<Feature> &features,
                common::Pose3d *const pose_out);
 
+  TPointCloudConstPtr cloud_corn() const {
+    return kdtree_corn_.getInputCloud();
+  }
+
+  TPointCloudConstPtr cloud_surf() const {
+    return kdtree_surf_.getInputCloud();
+  }
+
   void Reset();
 
  protected:
@@ -29,9 +37,7 @@ class Odometer {
   void MatchSurf(const TPointCloud &src,
                  std::vector<PointPlanePair> *const pairs) const;
 
-  void Visualize(const TPointCloudConstPtr &cloud_corn,
-                 const TPointCloudConstPtr &cloud_surf,
-                 const std::vector<PointLinePair> &pl_pairs,
+  void Visualize(const std::vector<PointLinePair> &pl_pairs,
                  const std::vector<PointPlanePair> &pp_pairs,
                  double timestamp = 0.0) const;
 
