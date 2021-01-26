@@ -61,17 +61,6 @@ void OhMyLoam::Run(double timestamp,
   if (mapping_thread_->joinable()) mapping_thread_->detach();
 }
 
-void OhMyLoam::MappingProcess(double timestamp,
-                              const TPointCloudConstPtr &cloud_corn,
-                              const TPointCloudConstPtr &cloud_surf) {
-  TimePose pose;
-  pose.timestamp = timestamp;
-  mapper_->Process(timestamp, cloud_corn, cloud_corn, &pose.pose);
-  std::lock_guard<std::mutex> lock(mutex_);
-  pose_mapping_ = pose;
-  pose_mapping_updated_ = true;
-}
-
 void OhMyLoam::FusionOdometryMapping() {
   std::lock_guard<std::mutex> lock(mutex_);
   TimePose pose_m = pose_mapping_;

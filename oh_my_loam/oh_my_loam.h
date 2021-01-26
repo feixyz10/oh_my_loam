@@ -22,9 +22,6 @@ class OhMyLoam {
 
   void FusionOdometryMapping();
 
-  void MappingProcess(double timestamp, const TPointCloudConstPtr &cloud_corn,
-                      const TPointCloudConstPtr &cloud_surf);
-
   void Visualize(double timestamp = 0.0);
 
   std::unique_ptr<Extractor> extractor_{nullptr};
@@ -37,17 +34,7 @@ class OhMyLoam {
   void RemoveOutliers(const common::PointCloud &cloud_in,
                       common::PointCloud *const cloud_out) const;
 
-  struct TimePose {
-    double timestamp;
-    common::Pose3d pose;
-  };
-
-  std::vector<TimePose> poses_curr2world_;
-
-  std::mutex mutex_;
-  TimePose pose_mapping_;
-  bool pose_mapping_updated_ = true;
-  std::unique_ptr<std::thread> mapping_thread_{nullptr};
+  std::vector<common::Pose3d> poses_curr2world_;
 
   YAML::Node config_;
 

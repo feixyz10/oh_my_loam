@@ -1,5 +1,7 @@
 #include "mapper.h"
 
+#include <mutex>
+
 namespace oh_my_loam {
 
 namespace {
@@ -20,13 +22,24 @@ void Mapper::Reset() {}
 void Mapper::Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
                      const TPointCloudConstPtr &cloud_surf,
                      common::Pose3d *const pose_out) {
-  if (!is_initialized_) {
+  if (GetState() == UN_INIT) {
     cloud_corn_map_ = cloud_corn;
     cloud_surf_map_ = cloud_surf;
     pose_out->SetIdentity();
-    is_initialized_ = true;
+    SetState(DONE);
     return;
   }
+  if (GetState() == DONE) {
+    Update();
+  } else {  // RUNNING
+  }
+}
+
+void Mapper::Run(double timestamp, const TPointCloudConstPtr &cloud_corn,
+                 const TPointCloudConstPtr &cloud_surf) {
+  TimePose pose;
+  pose.timestamp = timestamp;
+  std::lock_guard<std::mutex> lock(mutex_);
 }
 
 void Mapper::Visualize() {}
