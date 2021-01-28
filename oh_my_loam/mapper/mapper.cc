@@ -30,7 +30,6 @@ void Mapper::Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
     return;
   }
   if (GetState() == DONE) {
-    Update();
   } else {  // RUNNING
   }
 }
