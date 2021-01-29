@@ -5,10 +5,8 @@
 #include <mutex>
 #include <vector>
 
-#include "common/common.h"
 #include "common/geometry/pose3d.h"
-#include "oh_my_loam/base/feature.h"
-#include "oh_my_loam/base/types.h"
+#include "oh_my_loam/mapper/map.h"
 
 namespace oh_my_loam {
 
@@ -21,14 +19,6 @@ class Mapper {
   void Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
                const TPointCloudConstPtr &cloud_surf,
                common::Pose3d *const pose_out);
-
-  TPointCloudConstPtr cloud_corn_map() const {
-    return cloud_corn_map_;
-  }
-
-  TPointCloudConstPtr cloud_surf_map() const {
-    return cloud_corn_map_;
-  }
 
   void Reset();
 
@@ -54,11 +44,6 @@ class Mapper {
 
   void Visualize();
 
-  TPointCloudPtr cloud_corn_map_;
-  TPointCloudPtr cloud_surf_map_;
-
-  std::vector<std::vector<TPointCloudPtr>> cloud_sub_map_;
-
   YAML::Node config_;
 
   struct TimePose {
@@ -66,12 +51,14 @@ class Mapper {
     common::Pose3d pose;
   };
 
+  std::unique_ptr<Map> cloud_corn_map_;
+  std::unique_ptr<Map> cloud_surf_map_;
+
   std::mutex mutex_;
   std::vector<TimePose> poses_;
+  std::unique_ptr<std::thread> thread_{nullptr};
 
   State state_ = UN_INIT;
-
-  std::unique_ptr<std::thread> thread_{nullptr};
 
   bool is_vis_ = false;
 

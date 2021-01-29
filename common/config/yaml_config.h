@@ -27,6 +27,26 @@ class YAMLConfig {
     return *config_;
   }
 
+  template <typename T>
+  static const std::vector<T> GetSeq(const YAML::Node &node) {
+    ACHECK(node.IsSequence()) << "Not sequence.";
+    std::vector<T> seq;
+    for (auto it = node.begin(); it != node.end(); ++it) {
+      seq.push_back(it->as<T>());
+    }
+    return seq;
+  }
+
+  template <typename TK, typename TV>
+  static const std::map<TK, TV> GetMap(const YAML::Node &node) {
+    ACHECK(node.IsMap()) << "Not sequence.";
+    std::map<TK, TV> map;
+    for (auto it = node.begin(); it != node.end(); ++it) {
+      map.insert({it->first.as<TK>(), it->second.as<TV>()});
+    }
+    return map;
+  }
+
  private:
   std::unique_ptr<YAML::Node> config_{nullptr};
 

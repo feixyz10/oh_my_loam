@@ -36,9 +36,6 @@ void OhMyLoam::Reset() {
   extractor_->Reset();
   odometer_->Reset();
   mapper_->Reset();
-  std::vector<TimePose>().swap(poses_curr2world_);
-  std::lock_guard<std::mutex> lock(mutex_);
-  pose_mapping_updated_ = true;
 }
 
 void OhMyLoam::Run(double timestamp,

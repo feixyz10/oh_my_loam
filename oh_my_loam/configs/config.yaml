@@ -33,4 +33,5 @@ odometer_config:
 mapper_config:
   vis: false
   verbose: false
-  process_period: 0.5
+  map_shape: [11, 21, 21]
+  map_step_: 50 # meter
