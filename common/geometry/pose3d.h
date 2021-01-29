@@ -26,6 +26,13 @@ class Pose3d {
     t_vec_.setZero();
   }
 
+  const Eigen::Matrix4d TransMat() const {
+    Eigen::Matrix4d trans_mat = Eigen::Matrix4d::Identity();
+    trans_mat.topLeftCorner<3, 3>() = r_quat_.toRotationMatrix();
+    trans_mat.topRightCorner<3, 1>() = t_vec_;
+    return trans_mat;
+  }
+
   Pose3d Inv() const {
     Eigen::Quaterniond r_inv = r_quat_.inverse();
     Eigen::Vector3d t_inv = r_inv * t_vec_;

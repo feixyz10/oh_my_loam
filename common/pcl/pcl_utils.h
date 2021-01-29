@@ -1,5 +1,10 @@
 #pragma once
 
+#include <pcl/common/eigen.h>
+#include <pcl/common/transforms.h>
+#include <pcl/point_cloud.h>
+
+#include "common/geometry/pose3d.h"
 #include "common/log/log.h"
 #include "pcl_types.h"
 
@@ -34,6 +39,31 @@ inline double Distance(const PT &pt1, const PT &pt2) {
 template <typename PT>
 inline double IsFinite(const PT &pt) {
   return std::isfinite(pt.x) && std::isfinite(pt.y) && std::isfinite(pt.z);
+}
+
+template <typename PT>
+inline void TransformPoint(const Pose3d &pose, const PT &pt_in,
+                           PT *const pt_out) {
+  *pt_out = pt_in;
+  Eigen::Vector3d p = pose * Eigen::Vector3d(pt_in.x, pt_in.y, pt_in.z);
+  pt_out->x = p.x();
+  pt_out->y = p.y();
+  pt_out->z = p.z();
+}
+
+template <typename PT>
+inline PT TransformPoint(const Pose3d &pose, const PT &pt_in) {
+  PT pt_out;
+  TransformPoint<PT>(pose, pt_in, &pt_out);
+  return pt_out;
+}
+
+template <typename PT>
+inline void TransformPointCloud(const Pose3d &pose,
+                                const pcl::PointCloud<PT> &cloud_in,
+                                pcl::PointCloud<PT> *const cloud_out) {
+  ACHECK(cloud_out);
+  pcl::transformPointCloud(cloud_in, *cloud_out, pose.TransMat().cast<float>());
 }
 
 // Remove point if the condition evaluated to true on it

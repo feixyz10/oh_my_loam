@@ -122,11 +122,16 @@ TPointCloudPtr Map::GetAllPoints() const {
   return cloud_all;
 }
 
-void Map::AddPoints(const TPointCloudConstPtr &cloud, IndexSet *const indices) {
+void Map::AddPoints(const TPointCloudConstPtr &cloud,
+                    std::vector<Index> *const indices) {
+  std::set<Index, Index::Comp> index_set;
   for (const auto &point : *cloud) {
     Index index = GetIndex(point);
     this->at(index)->push_back(point);
-    if (indices) indices->insert(index);
+    if (indices) index_set.insert(index);
+  }
+  if (indices) {
+    for (const auto &index : index_set) indices->push_back(index);
   }
 }
 

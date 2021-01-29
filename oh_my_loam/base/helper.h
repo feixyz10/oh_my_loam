@@ -15,22 +15,6 @@ inline float GetTime(const TPoint &pt) {
   return pt.time - GetScanId(pt);
 }
 
-template <typename PT>
-void TransformPoint(const Pose3d &pose, const PT &pt_in, PT *const pt_out) {
-  *pt_out = pt_in;
-  Eigen::Vector3d p = pose * Eigen::Vector3d(pt_in.x, pt_in.y, pt_in.z);
-  pt_out->x = p.x();
-  pt_out->y = p.y();
-  pt_out->z = p.z();
-}
-
-template <typename PT>
-PT TransformPoint(const Pose3d &pose, const PT &pt_in) {
-  PT pt_out;
-  TransformPoint<PT>(pose, pt_in, &pt_out);
-  return pt_out;
-}
-
 /**
  * @brief Transform a lidar point to the start of the scan
  *

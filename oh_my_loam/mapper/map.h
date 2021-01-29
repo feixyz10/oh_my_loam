@@ -22,8 +22,6 @@ struct Index {
   };
 };
 
-using IndexSet = std::set<Index, Index::Comp>;
-
 class Map {
  public:
   Map(const std::vector<int> &shape, const std::vector<double> &step);
@@ -42,6 +40,10 @@ class Map {
 
   void ShiftX(int n);
 
+  const std::vector<int> Shape() const {
+    return std::vector<int>(shape_, shape_ + 3);
+  }
+
   Index GetIndex(const TPoint &point) const;
 
   TPointCloudPtr GetSurrPoints(const TPoint &point, int n) const;
@@ -49,7 +51,7 @@ class Map {
   TPointCloudPtr GetAllPoints() const;
 
   void AddPoints(const TPointCloudConstPtr &cloud,
-                 IndexSet *const indices = nullptr);
+                 std::vector<Index> *const indices = nullptr);
 
   void Downsample(double voxel_size);
 
