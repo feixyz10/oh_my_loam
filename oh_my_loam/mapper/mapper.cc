@@ -21,9 +21,11 @@ bool Mapper::Init() {
   is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
   verbose_ = config_["vis"].as<bool>();
   AINFO << "Mapping visualizer: " << (is_vis_ ? "ON" : "OFF");
-  std::vector<int> shape = YAMLConfig::GetSeq<int>(config_["map_shape"]);
-  corn_map_.reset(new Map(shape, config_["map_step"].as<double>()));
-  surf_map_.reset(new Map(shape, config_["map_step"].as<double>()));
+  map_shape_ = YAMLConfig::GetSeq<int>(config_["map_shape"]);
+  submap_shape_ = YAMLConfig::GetSeq<int>(config_["submap_shape"]);
+  map_step_ = config_["map_step"].as<double>();
+  corn_map_.reset(new Map(map_shape_, map_step_));
+  surf_map_.reset(new Map(map_shape_, map_step_));
   return true;
 }
 
@@ -79,30 +81,31 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn_in,
 }
 
 void Mapper::AdjustMap(const Index &index) {
-  std::vector<int> map_shape = corn_map_->Shape();
-  int min_idx = config_["submap_shape"].as<int>() / 2 + 1;
-  int max_idx_z = map_shape[0] - min_idx - 1;
-  if (index.k < min_idx) {
-    corn_map_->ShiftZ(index.k - min_idx);
-    surf_map_->ShiftZ(index.k - min_idx);
+  int min_idx_z = submap_shape_[0] / 2 + 1;
+  int max_idx_z = map_shape_[0] - min_idx_z - 1;
+  if (index.k < min_idx_z) {
+    corn_map_->ShiftZ(index.k - min_idx_z);
+    surf_map_->ShiftZ(index.k - min_idx_z);
   }
   if (index.k > max_idx_z) {
     corn_map_->ShiftZ(index.k - max_idx_z);
     surf_map_->ShiftZ(index.k - max_idx_z);
   }
-  int max_idx_y = map_shape[1] - min_idx - 1;
-  if (index.j < min_idx) {
-    corn_map_->ShiftY(index.j - min_idx);
-    surf_map_->ShiftY(index.j - min_idx);
+  int min_idx_y = submap_shape_[0] / 2 + 1;
+  int max_idx_y = map_shape_[1] - min_idx_y - 1;
+  if (index.j < min_idx_y) {
+    corn_map_->ShiftY(index.j - min_idx_y);
+    surf_map_->ShiftY(index.j - min_idx_y);
   }
   if (index.j > max_idx_y) {
     corn_map_->ShiftY(index.j - max_idx_y);
     surf_map_->ShiftY(index.j - max_idx_y);
   }
-  int max_idx_x = map_shape[2] - min_idx - 1;
-  if (index.i < min_idx) {
-    corn_map_->ShiftX(index.i - min_idx);
-    surf_map_->ShiftX(index.i - min_idx);
+  int min_idx_x = submap_shape_[0] / 2 + 1;
+  int max_idx_x = map_shape_[2] - min_idx_x - 1;
+  if (index.i < min_idx_x) {
+    corn_map_->ShiftX(index.i - min_idx_x);
+    surf_map_->ShiftX(index.i - min_idx_x);
   }
   if (index.i > max_idx_x) {
     corn_map_->ShiftX(index.i - max_idx_x);

@@ -73,8 +73,12 @@ class Mapper {
 
   mutable std::shared_mutex corn_map_mutex_;
   mutable std::shared_mutex surf_map_mutex_;
+  std::vector<int> map_shape_, submap_shape_;
+  double map_step_;
   std::unique_ptr<Map> corn_map_;
   std::unique_ptr<Map> surf_map_;
+  pcl::KdTreeFLANN<TPoint> kdtree_corn_map_;
+  pcl::KdTreeFLANN<TPoint> kdtree_surf_map_;
 
   mutable std::mutex state_mutex_;
   Pose3d pose_odom2map_;
