@@ -18,11 +18,11 @@ class Odometer {
   void Process(double timestamp, const std::vector<Feature> &features,
                common::Pose3d *const pose_out);
 
-  TPointCloudConstPtr cloud_corn() const {
+  TPointCloudConstPtr GetCloudCorn() const {
     return kdtree_corn_.getInputCloud();
   }
 
-  TPointCloudConstPtr cloud_surf() const {
+  TPointCloudConstPtr GetCloudSurf() const {
     return kdtree_surf_.getInputCloud();
   }
 

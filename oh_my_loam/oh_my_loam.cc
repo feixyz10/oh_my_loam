@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "common/common.h"
 #include "common/pcl/pcl_utils.h"
-#include "oh_my_loam/base/helper.h"
 #include "oh_my_loam/extractor/extractor_VLP16.h"
 
 namespace oh_my_loam {
@@ -33,6 +33,7 @@ bool OhMyLoam::Init() {
 }
 
 void OhMyLoam::Reset() {
+  AWARN << "OhMySlam RESET";
   extractor_->Reset();
   odometer_->Reset();
   mapper_->Reset();
@@ -44,37 +45,27 @@ void OhMyLoam::Run(double timestamp,
   RemoveOutliers(*cloud_in, cloud.get());
   std::vector<Feature> features;
   extractor_->Process(timestamp, cloud, &features);
-  FusionOdometryMapping();
-  auto pose_odom =
-      poses_curr2world_.empty() ? TimePose() : poses_curr2world_.back();
-  odometer_->Process(timestamp, features, &pose_odom.pose);
-  poses_curr2world_.push_back(pose_odom);
-  const auto &cloud_corn = odometer_->cloud_corn();
-  const auto &cloud_surf = odometer_->cloud_surf();
-
-  if (!pose_mapping_updated_) return;
-  mapping_thread_.reset(new std::thread(&OhMyLoam::MappingProcess, this,
-                                        timestamp, cloud_corn, cloud_surf));
-  if (mapping_thread_->joinable()) mapping_thread_->detach();
-}
-
-void OhMyLoam::FusionOdometryMapping() {
-  std::lock_guard<std::mutex> lock(mutex_);
-  TimePose pose_m = pose_mapping_;
-  pose_mapping_updated_ = false;
-  for (;;) {
-  }
+  common::Pose3d pose_curr2odom;
+  odometer_->Process(timestamp, features, &pose_curr2odom);
+  common::Pose3d pose_curr2map;
+  const auto &cloud_corn = odometer_->GetCloudCorn();
+  const auto &cloud_surf = odometer_->GetCloudSurf();
+  mapper_->Process(timestamp, cloud_corn, cloud_surf, pose_curr2odom,
+                   &pose_curr2map);
+  poses_curr2odom_.push_back(pose_curr2odom);
+  poses_curr2world_.push_back(pose_curr2map);
+  if (is_vis_) Visualize(timestamp);
 }
 
 void OhMyLoam::Visualize(double timestamp) {}
 
 void OhMyLoam::RemoveOutliers(const common::PointCloud &cloud_in,
                               common::PointCloud *const cloud_out) const {
-  common::RemovePoints<common::Point>(cloud_in, cloud_out, [&](const auto &pt) {
-    return !common::IsFinite<common::Point>(pt) ||
-           common::DistanceSquare<common::Point>(pt) <
-               kPointMinDist * kPointMinDist;
-  });
+  common::RemovePoints<common::Point>(
+      cloud_in, cloud_out, [&](const common::Point &pt) {
+        return !common::IsFinite(pt) ||
+               common::DistanceSquare(pt) < kPointMinDist * kPointMinDist;
+      });
 }
 
 }  // namespace oh_my_loam

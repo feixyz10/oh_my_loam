@@ -48,7 +48,7 @@ Eigen::Matrix<double, 6, 1> FitLine3D(const pcl::PointCloud<PT> &cloud,
  * b^2 + c^2 = 1)
  */
 template <typename PT>
-Eigen::Vector3d FitPlane(const pcl::PointCloud<PT> &cloud,
+Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud,
                          double *const score = nullptr) {
   Eigen::MatrixX3f data(cloud.size(), 3);
   size_t i = 0;
@@ -56,7 +56,7 @@ Eigen::Vector3d FitPlane(const pcl::PointCloud<PT> &cloud,
   Eigen::RowVector3f centroid = data.colwise().mean();
   Eigen::MatrixX3f data_centered = data.rowwise() - centroid;
   Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeThinV);
-  Eigen::Vector2f normal = svd.matrixV().col(2);
+  Eigen::Vector3f normal = svd.matrixV().col(2);
   float d = -centroid * normal;
   if (score) {
     *score = svd.singularValues()[1] * svd.singularValues()[1] /

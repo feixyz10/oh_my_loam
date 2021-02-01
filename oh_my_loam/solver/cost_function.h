@@ -174,7 +174,8 @@ bool PointPlaneCoeffCostFunction::operator()(const T *const r_quat,
   }
   Eigen::Matrix<T, 3, 1> p0 = r * p + t;
 
-  residual[0] = coeff.topRows(3).transpose() * p + coeff[3];
+  residual[0] = coeff.topRows(3).transpose() * p0;
+  residual[0] += coeff(3);
   return true;
 }
 

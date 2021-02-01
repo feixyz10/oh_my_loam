@@ -25,11 +25,11 @@ class Mapper {
                const common::Pose3d &pose_curr2odom,
                common::Pose3d *const pose_curr2map);
 
-  TPointCloudPtr GetCornMapPoints() const;
+  TPointCloudPtr GetMapCloudCorn() const;
 
-  TPointCloudPtr GetSurfMapPoints() const;
+  TPointCloudPtr GetMapCloudSurf() const;
 
-  TPointCloudPtr GetMapPoints() const;
+  TPointCloudPtr GetMapCloud() const;
 
   void Reset();
 
@@ -64,8 +64,6 @@ class Mapper {
                  const TCTPointCloudConstPtr &tgt,
                  std::vector<PointLinePair> *const pairs) const;
 
-  void Visualize();
-
   YAML::Node config_;
 
   std::vector<int> map_shape_, submap_shape_;
@@ -74,8 +72,8 @@ class Mapper {
   std::unique_ptr<Map> surf_map_;
 
   mutable std::mutex state_mutex_;
-  common::Pose3d pose_odom2map_;
   State state_ = UN_INIT;
+  common::Pose3d pose_odom2map_;
 
   mutable std::unique_ptr<std::thread> thread_{nullptr};
 

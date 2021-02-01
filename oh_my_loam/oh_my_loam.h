@@ -20,8 +20,6 @@ class OhMyLoam {
  private:
   void Reset();
 
-  void FusionOdometryMapping();
-
   void Visualize(double timestamp = 0.0);
 
   std::unique_ptr<Extractor> extractor_{nullptr};
@@ -34,11 +32,13 @@ class OhMyLoam {
   void RemoveOutliers(const common::PointCloud &cloud_in,
                       common::PointCloud *const cloud_out) const;
 
+  std::vector<common::Pose3d> poses_curr2odom_;
   std::vector<common::Pose3d> poses_curr2world_;
 
   YAML::Node config_;
+  bool is_vis_ = false;
 
-  DISALLOW_COPY_AND_ASSIGN(OhMyLoam)
+  DISALLOW_COPY_AND_ASSIGN(OhMyLoam);
 };
 
 }  // namespace oh_my_loam

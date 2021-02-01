@@ -13,6 +13,8 @@ class Grid;
 
 struct Index {
   int k, j, i;
+  Index() = default;
+  Index(int k, int j, int i) : k(k), j(j), i(i) {}
 
   struct Comp {
     bool operator()(const Index &idx1, const Index &idx2) const {

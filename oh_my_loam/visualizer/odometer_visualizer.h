@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/visualizer/lidar_visualizer.h"
-#include "oh_my_loam/base/helper.h"
+#include "oh_my_loam/solver/cost_function.h"
 
 namespace oh_my_loam {
 
@@ -23,9 +23,11 @@ class OdometerVisualizer : public common::LidarVisualizer {
  private:
   void Draw() override;
 
-  void DrawCorn(const Pose3d &pose, const std::vector<PointLinePair> &pairs);
+  void DrawCorn(const common::Pose3d &pose,
+                const std::vector<PointLinePair> &pairs);
 
-  void DrawSurf(const Pose3d &pose, const std::vector<PointPlanePair> &pairs);
+  void DrawSurf(const common::Pose3d &pose,
+                const std::vector<PointPlanePair> &pairs);
 
   void DrawTrajectory();
 

@@ -23,7 +23,7 @@ void Odometer::Reset() {
 }
 
 void Odometer::Process(double timestamp, const std::vector<Feature> &features,
-                       Pose3d *const pose_out) {
+                       common::Pose3d *const pose_out) {
   if (!is_initialized_) {
     UpdatePre(features);
     is_initialized_ = true;

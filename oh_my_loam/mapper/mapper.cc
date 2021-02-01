@@ -173,18 +173,18 @@ void Mapper::AdjustMap(const TPoint &center) {
   }
 }
 
-TPointCloudPtr Mapper::GetCornMapPoints() const {
+TPointCloudPtr Mapper::GetMapCloudCorn() const {
   return corn_map_->GetAllPoints();
 }
 
-TPointCloudPtr Mapper::GetSurfMapPoints() const {
+TPointCloudPtr Mapper::GetMapCloudSurf() const {
   return surf_map_->GetAllPoints();
 }
 
-TPointCloudPtr Mapper::GetMapPoints() const {
+TPointCloudPtr Mapper::GetMapCloud() const {
   TPointCloudPtr map_points(new TPointCloud);
-  *map_points += *GetCornMapPoints();
-  *map_points += *GetSurfMapPoints();
+  *map_points += *GetMapCloudCorn();
+  *map_points += *GetMapCloudSurf();
   return map_points;
 }
 
@@ -197,7 +197,5 @@ void Mapper::SetState(State state) {
   std::lock_guard<std::mutex> lock(state_mutex_);
   state_ = state;
 }
-
-void Mapper::Visualize() {}
 
 }  // namespace oh_my_loam
