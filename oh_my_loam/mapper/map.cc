@@ -108,9 +108,10 @@ Index Map::GetIndex(const TPoint &point) const {
   return index;
 }
 
-TPointCloudPtr Map::GetSurrPoints(const TPoint &point, int n) const {
+TPointCloudPtr Map::GetSurrPoints(const TPoint &point,
+                                  const std::vector<int> &surr_shapes) const {
   TPointCloudPtr cloud_all(new TPointCloud);
-  for (const auto &index : GetSurrIndices(point, n)) {
+  for (const auto &index : GetSurrIndices(point, surr_shapes)) {
     *cloud_all += *this->at(index);
   }
   return cloud_all;
@@ -165,12 +166,14 @@ const Row &Map::at(int z_idx, int y_idx) const {
   return map_.at(z_idx).at(y_idx);
 }
 
-std::vector<Index> Map::GetSurrIndices(const TPoint &point, int n) const {
+std::vector<Index> Map::GetSurrIndices(
+    const TPoint &point, const std::vector<int> &surr_shapes) const {
   std::vector<Index> indices;
   Index index = GetIndex(point);
-  for (int k = -n; k <= n; ++k) {
-    for (int j = -n; j <= n; ++j) {
-      for (int i = -n; i <= n; ++i) {
+  int nz = surr_shapes[0] / 2, ny = surr_shapes[1] / 2, nx = surr_shapes[2] / 2;
+  for (int k = -nz; k <= nz; ++k) {
+    for (int j = -ny; j <= ny; ++j) {
+      for (int i = -nx; i <= nx; ++i) {
         indices.emplace_back(index.k + k, index.j + j, index.i + i);
       }
     }

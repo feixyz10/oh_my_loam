@@ -46,6 +46,13 @@ void PoseSolver::AddPointPlanePair(const PointPlanePair &pair, double time) {
   problem_.AddResidualBlock(cost_function, loss_function_, r_quat_, t_vec_);
 }
 
+void PoseSolver::AddPointPlaneCoeffPair(const PointPlaneCoeffPair &pair,
+                                        double time) {
+  ceres::CostFunction *cost_function =
+      PointPlaneCoeffCostFunction::Create(pair, time);
+  problem_.AddResidualBlock(cost_function, loss_function_, r_quat_, t_vec_);
+}
+
 common::Pose3d PoseSolver::GetPose() const {
   return common::Pose3d(r_quat_, t_vec_);
 }

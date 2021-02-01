@@ -7,9 +7,10 @@
 #include <vector>
 
 #include "common/geometry/pose3d.h"
-#include "oh_my_loam/base/helper.h"
 #include "oh_my_loam/base/types.h"
+#include "oh_my_loam/base/utils.h"
 #include "oh_my_loam/mapper/map.h"
+#include "oh_my_loam/solver/solver.h"
 
 namespace oh_my_loam {
 
@@ -24,22 +25,11 @@ class Mapper {
                const common::Pose3d &pose_curr2odom,
                common::Pose3d *const pose_curr2map);
 
-  TPointCloudPtr GetCornMapPoints() const {
-    std::shared_lock<std::shared_mutex> lock(corn_map_mutex_);
-    return corn_map_->GetAllPoints();
-  }
+  TPointCloudPtr GetCornMapPoints() const;
 
-  TPointCloudPtr GetSurfMapPoints() const {
-    std::shared_lock<std::shared_mutex> lock(surf_map_mutex_);
-    return surf_map_->GetAllPoints();
-  }
+  TPointCloudPtr GetSurfMapPoints() const;
 
-  TPointCloudPtr GetMapPoints() const {
-    TPointCloudPtr map_points(new TPointCloud);
-    *map_points += *GetCornMapPoints();
-    *map_points += *GetSurfMapPoints();
-    return map_points;
-  }
+  TPointCloudPtr GetMapPoints() const;
 
   void Reset();
 
@@ -47,41 +37,44 @@ class Mapper {
   enum State { DONE, RUNNING, UN_INIT };
 
   void Run(const TPointCloudConstPtr &cloud_corn,
-           const TPointCloudConstPtr &cloud_surf, const Pose3d &pose_init);
+           const TPointCloudConstPtr &cloud_surf,
+           const common::Pose3d &pose_init);
 
-  void MatchCorn(const TPointCloudConstPtr &src, const TPointCloudConstPtr &tgt,
-                 std::vector<PointLinePair> *const pair) const;
+  void MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
+                 const TPointCloudConstPtr &cloud_curr,
+                 const common::Pose3d &pose_curr2map,
+                 std::vector<PointLinePair> *const pairs) const;
 
-  void MatchSurf(const TPointCloudConstPtr &src, const TPointCloudConstPtr &tgt,
-                 std::vector<PointPlanePair> *const pair) const;
+  void MatchSurf(const pcl::KdTreeFLANN<TPoint> &kdtree,
+                 const TPointCloudConstPtr &cloud_curr,
+                 const common::Pose3d &pose_curr2map,
+                 std::vector<PointPlaneCoeffPair> *const pairs) const;
 
-  State GetState() const {
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    return state_;
-  }
+  State GetState() const;
 
-  void SetState(State state) {
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    state_ = state;
-  }
+  void SetState(State state);
 
-  void AdjustMap(const Index &index);
+  void AdjustMap(const TPoint &center);
+
+  void MatchCorn(const TPointCloudConstPtr &src,
+                 const TCTPointCloudConstPtr &tgt,
+                 std::vector<PointLinePair> *const pairs) const;
+
+  void MatchSurf(const TPointCloudConstPtr &src,
+                 const TCTPointCloudConstPtr &tgt,
+                 std::vector<PointLinePair> *const pairs) const;
 
   void Visualize();
 
   YAML::Node config_;
 
-  mutable std::shared_mutex corn_map_mutex_;
-  mutable std::shared_mutex surf_map_mutex_;
   std::vector<int> map_shape_, submap_shape_;
   double map_step_;
   std::unique_ptr<Map> corn_map_;
   std::unique_ptr<Map> surf_map_;
-  pcl::KdTreeFLANN<TPoint> kdtree_corn_map_;
-  pcl::KdTreeFLANN<TPoint> kdtree_surf_map_;
 
   mutable std::mutex state_mutex_;
-  Pose3d pose_odom2map_;
+  common::Pose3d pose_odom2map_;
   State state_ = UN_INIT;
 
   mutable std::unique_ptr<std::thread> thread_{nullptr};

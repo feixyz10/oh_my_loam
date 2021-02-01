@@ -34,5 +34,9 @@ mapper_config:
   vis: false
   verbose: false
   map_shape: [3, 21, 21]
-  map_step_: 50 # meter
+  map_step: 50 # meter
   submap_shape: [1, 5, 5]
+  nearest_neighbor_k: 5
+  neighbor_point_dist_sq_th: 1.0
+  min_line_fit_score: 2
+  min_plane_fit_score: 2

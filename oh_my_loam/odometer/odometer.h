@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common/common.h"
-#include "common/geometry/pose3d.h"
 #include "oh_my_loam/base/feature.h"
-#include "oh_my_loam/base/helper.h"
+#include "oh_my_loam/base/utils.h"
+#include "oh_my_loam/solver/solver.h"
 #include "oh_my_loam/visualizer/odometer_visualizer.h"
 
 namespace oh_my_loam {

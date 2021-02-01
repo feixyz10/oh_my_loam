@@ -5,8 +5,6 @@
 #include "common/log/log.h"
 #include "common/pcl/pcl_utils.h"
 #include "common/time/timer.h"
-#include "oh_my_loam/base/types.h"
-#include "oh_my_loam/solver/solver.h"
 
 namespace oh_my_loam {
 

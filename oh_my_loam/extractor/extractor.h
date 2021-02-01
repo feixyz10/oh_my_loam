@@ -2,7 +2,7 @@
 
 #include "common/common.h"
 #include "oh_my_loam/base/feature.h"
-#include "oh_my_loam/base/helper.h"
+#include "oh_my_loam/base/utils.h"
 #include "oh_my_loam/base/types.h"
 #include "oh_my_loam/visualizer/extractor_visualizer.h"
 

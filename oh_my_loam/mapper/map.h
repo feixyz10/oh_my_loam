@@ -46,7 +46,8 @@ class Map {
 
   Index GetIndex(const TPoint &point) const;
 
-  TPointCloudPtr GetSurrPoints(const TPoint &point, int n) const;
+  TPointCloudPtr GetSurrPoints(const TPoint &point,
+                               const std::vector<int> &surr_shapes) const;
 
   TPointCloudPtr GetAllPoints() const;
 
@@ -70,7 +71,8 @@ class Map {
 
   const TPointCloudPtr &at(int z_idx, int y_idx, int x_idx) const;
 
-  std::vector<Index> GetSurrIndices(const TPoint &point, int n) const;
+  std::vector<Index> GetSurrIndices(const TPoint &point,
+                                    const std::vector<int> &surr_shapes) const;
 
   std::vector<Index> GetAllIndices() const;
 
