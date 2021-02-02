@@ -2,11 +2,11 @@
 lidar: VPL16
 log_to_file: false
 log_path: /data/log/oh_my_loam
-vis: false
+vis: true
 
 # configs for extractor
 extractor_config:
-  vis: true
+  vis: false
   verbose: false
   min_point_num: 66
   scan_seg_num: 12

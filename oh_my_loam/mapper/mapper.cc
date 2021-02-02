@@ -60,9 +60,9 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
   common::Pose3d pose_curr2map = pose_odom2map_ * pose_curr2odom;
   TPoint cnt(pose_curr2map.t_vec().x(), pose_curr2map.t_vec().y(),
              pose_curr2map.t_vec().z());
-  AdjustMap(cnt);
+  // AdjustMap(cnt);
   TPointCloudPtr cloud_corn_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
-  TPointCloudPtr cloud_surf_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
+  TPointCloudPtr cloud_surf_map = surf_map_->GetSurrPoints(cnt, submap_shape_);
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
     pcl::KdTreeFLANN<TPoint> kdtree_corn;
     kdtree_corn.setInputCloud(cloud_corn_map);
@@ -83,10 +83,10 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
     }
     PoseSolver solver(pose_curr2map);
     for (const auto &pair : pl_pairs) {
-      solver.AddPointLinePair(pair, 0.0);
+      solver.AddPointLinePair(pair, 1.0);
     }
     for (const auto &pair : pp_pairs) {
-      solver.AddPointPlaneCoeffPair(pair, 0.0);
+      solver.AddPointPlaneCoeffPair(pair, 1.0);
     }
     if (!solver.Solve(config_["solve_iter_num"].as<int>(), verbose_,
                       &pose_curr2map)) {

@@ -117,11 +117,11 @@ bool Map::IsIndexValid(const Index &index) const {
 
 TPointCloudPtr Map::GetSurrPoints(const TPoint &point,
                                   const std::vector<int> &surr_shapes) const {
-  TPointCloudPtr cloud_all(new TPointCloud);
+  TPointCloudPtr cloud(new TPointCloud);
   for (const auto &index : GetSurrIndices(point, surr_shapes)) {
-    *cloud_all += *this->at(index);
+    *cloud += *this->at(index);
   }
-  return cloud_all;
+  return cloud;
 }
 
 TPointCloudPtr Map::GetAllPoints() const {
@@ -180,9 +180,15 @@ std::vector<Index> Map::GetSurrIndices(
   Index index = GetIndex(point);
   int nz = surr_shapes[0] / 2, ny = surr_shapes[1] / 2, nx = surr_shapes[2] / 2;
   for (int k = -nz; k <= nz; ++k) {
+    int idx_k = index.k + k;
+    if (idx_k < 0 || idx_k >= shape_[0]) continue;
     for (int j = -ny; j <= ny; ++j) {
+      int idx_j = index.j + j;
+      if (idx_j < 0 || idx_j >= shape_[1]) continue;
       for (int i = -nx; i <= nx; ++i) {
-        indices.emplace_back(index.k + k, index.j + j, index.i + i);
+        int idx_i = index.i + i;
+        if (idx_i < 0 || idx_i >= shape_[2]) continue;
+        indices.emplace_back(idx_k, idx_j, idx_i);
       }
     }
   }
