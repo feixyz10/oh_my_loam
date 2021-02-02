@@ -108,6 +108,13 @@ Index Map::GetIndex(const TPoint &point) const {
   return index;
 }
 
+bool Map::IsIndexValid(const Index &index) const {
+  int k = index.k + center_[0], j = index.j + center_[1],
+      i = index.i + center_[2];
+  return k >= 0 && k < shape_[0] && j >= 0 && j < shape_[1] && i >= 0 &&
+         i < shape_[2];
+}
+
 TPointCloudPtr Map::GetSurrPoints(const TPoint &point,
                                   const std::vector<int> &surr_shapes) const {
   TPointCloudPtr cloud_all(new TPointCloud);
@@ -128,6 +135,7 @@ void Map::AddPoints(const TPointCloudConstPtr &cloud,
   std::set<Index, Index::Comp> index_set;
   for (const auto &point : *cloud) {
     Index index = GetIndex(point);
+    if (!IsIndexValid(index)) continue;
     this->at(index)->push_back(point);
     if (indices) index_set.insert(index);
   }

@@ -36,11 +36,11 @@ void Mapper::Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
                      const common::Pose3d &pose_curr2odom,
                      common::Pose3d *const pose_curr2map) {
   if (GetState() == UN_INIT) {
-    corn_map_->AddPoints(cloud_corn);
-    surf_map_->AddPoints(cloud_surf);
     pose_curr2map->SetIdentity();
     pose_odom2map_.SetIdentity();
+    UpdateMap(*pose_curr2map, cloud_corn, cloud_surf);
     SetState(DONE);
+    AINFO << "Mapper initialized...";
     return;
   }
   if (GetState() == DONE) {
@@ -55,6 +55,7 @@ void Mapper::Process(double timestamp, const TPointCloudConstPtr &cloud_corn,
 void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
                  const TPointCloudConstPtr &cloud_surf,
                  const common::Pose3d &pose_curr2odom) {
+  BLOCK_TIMER_START;
   SetState(RUNNING);
   common::Pose3d pose_curr2map = pose_odom2map_ * pose_curr2odom;
   TPoint cnt(pose_curr2map.t_vec().x(), pose_curr2map.t_vec().y(),
@@ -62,27 +63,43 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
   AdjustMap(cnt);
   TPointCloudPtr cloud_corn_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
   TPointCloudPtr cloud_surf_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
-  pcl::KdTreeFLANN<TPoint> kdtree_corn;
-  kdtree_corn.setInputCloud(cloud_corn_map);
-  pcl::KdTreeFLANN<TPoint> kdtree_surf;
-  kdtree_surf.setInputCloud(cloud_surf_map);
-  std::vector<PointLinePair> pl_pairs;
-  std::vector<PointPlaneCoeffPair> pp_pairs;
-  MatchCorn(kdtree_corn, cloud_corn_map, pose_curr2map, &pl_pairs);
-  MatchSurf(kdtree_surf, cloud_surf_map, pose_curr2map, &pp_pairs);
-  PoseSolver solver(pose_curr2map);
-  for (const auto &pair : pl_pairs) {
-    solver.AddPointLinePair(pair, 0.0);
+  for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
+    pcl::KdTreeFLANN<TPoint> kdtree_corn;
+    kdtree_corn.setInputCloud(cloud_corn_map);
+    pcl::KdTreeFLANN<TPoint> kdtree_surf;
+    kdtree_surf.setInputCloud(cloud_surf_map);
+    std::vector<PointLinePair> pl_pairs;
+    MatchCorn(kdtree_corn, cloud_corn_map, pose_curr2map, &pl_pairs);
+    std::vector<PointPlaneCoeffPair> pp_pairs;
+    MatchSurf(kdtree_surf, cloud_surf_map, pose_curr2map, &pp_pairs);
+    AINFO_IF(verbose_) << "Iter " << i
+                       << ": matched num: point2line = " << pl_pairs.size()
+                       << ", point2plane = " << pp_pairs.size();
+    if (pl_pairs.size() + pp_pairs.size() <
+        config_["min_correspondence_num"].as<size_t>()) {
+      AWARN << "Too less correspondence: " << pl_pairs.size() << " + "
+            << pp_pairs.size();
+      continue;
+    }
+    PoseSolver solver(pose_curr2map);
+    for (const auto &pair : pl_pairs) {
+      solver.AddPointLinePair(pair, 0.0);
+    }
+    for (const auto &pair : pp_pairs) {
+      solver.AddPointPlaneCoeffPair(pair, 0.0);
+    }
+    if (!solver.Solve(config_["solve_iter_num"].as<int>(), verbose_,
+                      &pose_curr2map)) {
+      AWARN << "Mapping solve: no_convergence";
+    }
+    AINFO_IF(verbose_) << "Odometer::ICP: iter_" << i << ": "
+                       << BLOCK_TIMER_STOP_FMT;
   }
-  for (const auto &pair : pp_pairs) {
-    solver.AddPointPlaneCoeffPair(pair, 0.0);
-  }
-  if (!solver.Solve(5, false, &pose_curr2map)) {
-    AWARN << "Solve: no_convergence";
-  }
+  UpdateMap(pose_curr2map, cloud_corn, cloud_surf);
+  SetState(DONE);  // be careful with deadlock
   std::lock_guard<std::mutex> lock(state_mutex_);
   pose_odom2map_ = pose_curr2map * pose_curr2odom.Inv();
-  SetState(DONE);
+  AUSER << "Mapper::Run: " << BLOCK_TIMER_STOP_FMT;
 }
 
 void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
@@ -173,18 +190,36 @@ void Mapper::AdjustMap(const TPoint &center) {
   }
 }
 
+void Mapper::UpdateMap(const common::Pose3d &pose_curr2map,
+                       const TPointCloudConstPtr &cloud_corn,
+                       const TPointCloudConstPtr &cloud_surf) {
+  auto update_map = [&](const TPointCloudConstPtr &cloud, Map *const map) {
+    TPointCloudPtr cloud_trans(new TPointCloud);
+    common::TransformPointCloud(pose_curr2map, *cloud, cloud_trans.get());
+    std::vector<Index> indices;
+    map->AddPoints(cloud_trans, &indices);
+    map->Downsample(indices, config_["downsample_voxel_size"].as<double>());
+  };
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  update_map(cloud_corn, corn_map_.get());
+  update_map(cloud_surf, surf_map_.get());
+}
+
 TPointCloudPtr Mapper::GetMapCloudCorn() const {
+  std::lock_guard<std::mutex> lock(map_mutex_);
   return corn_map_->GetAllPoints();
 }
 
 TPointCloudPtr Mapper::GetMapCloudSurf() const {
+  std::lock_guard<std::mutex> lock(map_mutex_);
   return surf_map_->GetAllPoints();
 }
 
 TPointCloudPtr Mapper::GetMapCloud() const {
   TPointCloudPtr map_points(new TPointCloud);
-  *map_points += *GetMapCloudCorn();
-  *map_points += *GetMapCloudSurf();
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  *map_points += *corn_map_->GetAllPoints();
+  *map_points += *surf_map_->GetAllPoints();
   return map_points;
 }
 

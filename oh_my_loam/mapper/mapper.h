@@ -56,6 +56,10 @@ class Mapper {
 
   void AdjustMap(const TPoint &center);
 
+  void UpdateMap(const common::Pose3d &pose_curr2map,
+                 const TPointCloudConstPtr &cloud_corn = nullptr,
+                 const TPointCloudConstPtr &cloud_surf = nullptr);
+
   void MatchCorn(const TPointCloudConstPtr &src,
                  const TCTPointCloudConstPtr &tgt,
                  std::vector<PointLinePair> *const pairs) const;
@@ -63,22 +67,21 @@ class Mapper {
   void MatchSurf(const TPointCloudConstPtr &src,
                  const TCTPointCloudConstPtr &tgt,
                  std::vector<PointLinePair> *const pairs) const;
-
-  YAML::Node config_;
-
-  std::vector<int> map_shape_, submap_shape_;
-  double map_step_;
+  // map
+  mutable std::mutex map_mutex_;
   std::unique_ptr<Map> corn_map_;
   std::unique_ptr<Map> surf_map_;
-
+  // state
   mutable std::mutex state_mutex_;
   State state_ = UN_INIT;
   common::Pose3d pose_odom2map_;
-
+  // thread to run mapping
   mutable std::unique_ptr<std::thread> thread_{nullptr};
-
+  // configs
+  YAML::Node config_;
+  std::vector<int> map_shape_, submap_shape_;
+  double map_step_;
   bool is_vis_ = false;
-
   bool verbose_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(Mapper)

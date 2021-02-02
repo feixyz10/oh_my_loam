@@ -11,7 +11,8 @@ struct OhmyloamVisFrame : public common::LidarVisFrame {
   TPointCloudConstPtr cloud_map_surf;
   TPointCloudConstPtr cloud_corn;  // current
   TPointCloudConstPtr cloud_surf;  // current
-  std::vector<common::Pose3d> poses;
+  common::Pose3d pose_odom;
+  common::Pose3d pose_map;
 };
 
 class OhmyloamVisualizer : public common::LidarVisualizer {
@@ -23,7 +24,15 @@ class OhmyloamVisualizer : public common::LidarVisualizer {
  private:
   void Draw() override;
 
-  void DrawTrajectory(std::vector<common::Pose3d> &poses);
+  void DrawTrajectory(const std::vector<common::Pose3d> &poses,
+                      const std::string &id, const common::Color &color);
+
+  void KeyboardEventCallback(
+      const pcl::visualization::KeyboardEvent &event) override;
+
+  std::vector<common::Pose3d> poses_odom_;
+  std::vector<common::Pose3d> poses_map_;
+  bool trans_ = true;
 };
 
 }  // namespace oh_my_loam

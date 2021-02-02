@@ -29,7 +29,7 @@ class YAMLConfig {
 
   template <typename T>
   static const std::vector<T> GetSeq(const YAML::Node &node) {
-    ACHECK(node.IsSequence()) << "Not sequence.";
+    ACHECK(node.IsSequence());
     std::vector<T> seq;
     for (auto it = node.begin(); it != node.end(); ++it) {
       seq.push_back(it->as<T>());
@@ -39,7 +39,7 @@ class YAMLConfig {
 
   template <typename TK, typename TV>
   static const std::map<TK, TV> GetMap(const YAML::Node &node) {
-    ACHECK(node.IsMap()) << "Not sequence.";
+    ACHECK(node.IsMap());
     std::map<TK, TV> map;
     for (auto it = node.begin(); it != node.end(); ++it) {
       map.insert({it->first.as<TK>(), it->second.as<TV>()});

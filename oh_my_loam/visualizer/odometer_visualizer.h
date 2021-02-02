@@ -38,7 +38,7 @@ class OdometerVisualizer : public common::LidarVisualizer {
   bool corn_connect_ = false;
   bool surf_connect_ = false;
 
-  std::deque<common::Pose3d> poses_;
+  std::vector<common::Pose3d> poses_;
 };
 
 }  // namespace oh_my_loam

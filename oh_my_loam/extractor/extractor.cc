@@ -14,7 +14,7 @@ const double kEps = 1e-6;
 bool Extractor::Init() {
   const auto &config = common::YAMLConfig::Instance()->config();
   config_ = config["extractor_config"];
-  is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
+  is_vis_ = config_["vis"].as<bool>();
   verbose_ = config_["verbose"].as<bool>();
   AINFO << "Extraction visualizer: " << (is_vis_ ? "ON" : "OFF");
   if (is_vis_) visualizer_.reset(new ExtractorVisualizer);

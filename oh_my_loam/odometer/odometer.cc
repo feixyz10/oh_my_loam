@@ -11,7 +11,7 @@ namespace oh_my_loam {
 bool Odometer::Init() {
   const auto &config = common::YAMLConfig::Instance()->config();
   config_ = config["odometer_config"];
-  is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
+  is_vis_ = config_["vis"].as<bool>();
   verbose_ = config_["verbose"].as<bool>();
   AINFO << "Odometry visualizer: " << (is_vis_ ? "ON" : "OFF");
   if (is_vis_) visualizer_.reset(new OdometerVisualizer);
@@ -30,7 +30,7 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     pose_curr2last_.SetIdentity();
     pose_curr2world_.SetIdentity();
     pose_out->SetIdentity();
-    AINFO << "Odometer initialized....";
+    AINFO << "Odometer initialized...";
     return;
   }
   BLOCK_TIMER_START;
@@ -61,12 +61,12 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     }
     bool is_converge = solver.Solve(config_["solve_iter_num"].as<int>(),
                                     verbose_, &pose_curr2last_);
-    AWARN_IF(!is_converge) << "Solve: no_convergence";
+    AWARN_IF(!is_converge) << "Odometry solve: no_convergence";
     AINFO_IF(verbose_) << "Odometer::ICP: iter_" << i << ": "
                        << BLOCK_TIMER_STOP_FMT;
   }
-  *pose_out = *pose_out * pose_curr2last_;
-  pose_curr2world_ = *pose_out;
+  pose_curr2world_ = pose_curr2world_ * pose_curr2last_;
+  *pose_out = pose_curr2world_;
   AINFO_IF(verbose_) << "Pose increase: " << pose_curr2last_.ToString();
   // mush called before calling UpdatePre
   if (is_vis_) Visualize(pl_pairs, pp_pairs);

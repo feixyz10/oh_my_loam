@@ -8,25 +8,31 @@
 #include <iostream>
 
 // here we define G3LOG instead of use LOG directly, since LOG macro in g3log
-// conflicts LOG macro in glog. Same for G3LOG_IF and G3CHECK
-#define G3LOG(level)          \
-  if (!g3::logLevel(level)) { \
-  } else                      \
+// conflicts LOG macro in glog.
+#define G3LOG(level) \
+  if (g3::logLevel(level)) INTERNAL_LOG_MESSAGE(level).stream()
+
+#define VARIABLE_WITH_LINE_NUM(var_name, line) var_name##line
+#define COUNT_VAR_WITH_LINE_NUM VARIABLE_WITH_LINE_NUM(_count_var_, __LINE__)
+
+#define G3LOG_EVERY(level, n)                                      \
+  static size_t COUNT_VAR_WITH_LINE_NUM = 0;                       \
+  if ((COUNT_VAR_WITH_LINE_NUM)++ % static_cast<size_t>(n) == 0 && \
+      g3::logLevel(level))                                         \
+    INTERNAL_LOG_MESSAGE(level).stream();
+
+#define G3LOG_IF(level, boolean_expression)        \
+  if ((boolean_expression) && g3::logLevel(level)) \
   INTERNAL_LOG_MESSAGE(level).stream()
 
-#define G3LOG_IF(level, boolean_expression)                    \
-  if (false == (boolean_expression) || !g3::logLevel(level)) { \
-  } else                                                       \
-  INTERNAL_LOG_MESSAGE(level).stream()
-
-#define G3CHECK(boolean_expression)   \
-  if (true == (boolean_expression)) { \
-  } else                              \
+#define G3CHECK(boolean_expression) \
+  if (!(boolean_expression))        \
   INTERNAL_CONTRACT_MESSAGE(#boolean_expression).stream()
 
 const LEVELS ERROR{WARNING.value + 100, "ERROR"};
 const LEVELS USER(ERROR.value + 100, "USER");
 
+// LOG
 #define ADEBUG G3LOG(DEBUG)
 #define AINFO G3LOG(INFO)
 #define AWARN G3LOG(WARNING)
@@ -43,6 +49,13 @@ const LEVELS USER(ERROR.value + 100, "USER");
 #define AFATAL_IF(cond) G3LOG_IF(FATAL, cond)
 #define ACHECK(cond) G3CHECK(cond)
 
+// LOG_EVERY
+#define ADEBUG_EVERY(n) G3LOG_EVERY(DEBUG, n)
+#define AINFO_EVERY(n) G3LOG_EVERY(INFO, n)
+#define AWARN_EVERY(n) G3LOG_EVERY(WARNING, n)
+#define AERROR_EVERY(n) G3LOG_EVERY(ERROR, n)
+#define AUSER_EVERY(n) G3LOG_EVERY(USER, n)
+
 namespace common {
 void InitG3Logging(bool log_to_file = false, const std::string &prefix = "",
                    const std::string &path = "./");
@@ -58,26 +71,15 @@ class CustomSink {
     ofs_.reset(new std::ofstream(log_file_name));
   }
 
-  ~CustomSink() {
-    std::ostringstream oss;
-    oss << "\ng3log " << (log_to_file_ ? "FileSink" : "StdSink")
-        << " shutdown at: ";
-    auto now = std::chrono::system_clock::now();
-    oss << g3::localtime_formatted(now, "%Y%m%d %H:%M:%S.%f3");
-    if (log_to_file_) {
-      (*ofs_) << oss.str() << std::endl;
-    } else {
-      std::clog << oss.str() << std::endl;
-    }
-  };
+  ~CustomSink();
 
-  void StdLogMessage(g3::LogMessageMover logEntry) {
-    std::clog << ColorFormatedMessage(logEntry.get()) << std::endl;
+  void StdLogMessage(g3::LogMessageMover log_entry) {
+    std::clog << ColorFormatedMessage(log_entry.get()) << std::endl;
   }
 
-  void FileLogMessage(g3::LogMessageMover logEntry) {
+  void FileLogMessage(g3::LogMessageMover log_entry) {
     if (log_to_file_) {
-      (*ofs_) << FormatedMessage(logEntry.get()) << std::endl;
+      (*ofs_) << FormatedMessage(log_entry.get()) << std::endl;
     }
   }
 
@@ -86,37 +88,11 @@ class CustomSink {
   bool log_to_file_{false};
   std::unique_ptr<std::ofstream> ofs_{nullptr};
 
-  std::string FormatedMessage(const g3::LogMessage &msg) const {
-    std::ostringstream oss;
-    oss << "[" << msg.level()[0] << msg.timestamp("%Y%m%d %H:%M:%S.%f3") << " "
-        << msg.file() << ":" << msg.line() << "] " << msg.message();
-    return oss.str();
-  }
+  std::string FormatedMessage(const g3::LogMessage &msg) const;
 
-  std::string ColorFormatedMessage(const g3::LogMessage &msg) const {
-    std::ostringstream oss;
-    oss << GetColorCode(msg._level) << FormatedMessage(msg) << "\033[m";
-    return oss.str();
-  }
+  std::string ColorFormatedMessage(const g3::LogMessage &msg) const;
 
-  std::string GetColorCode(const LEVELS &level) const {
-    if (level.value == WARNING.value) {
-      return "\033[33m";  // yellow
-    }
-    if (level.value == DEBUG.value) {
-      return "\033[32m";  // green
-    }
-    if (level.value == ERROR.value) {
-      return "\033[31m";  // red
-    }
-    if (level.value == USER.value) {
-      return "\033[1m\033[34m";  // bold blue
-    }
-    if (g3::internal::wasFatal(level)) {
-      return "\033[1m\033[31m";  // red
-    }
-    return "\033[97m";  // white
-  }
+  std::string GetColorCode(const LEVELS &level) const;
 };
 
 }  // namespace g3

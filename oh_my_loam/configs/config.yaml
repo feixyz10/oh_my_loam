@@ -2,11 +2,11 @@
 lidar: VPL16
 log_to_file: false
 log_path: /data/log/oh_my_loam
-vis: true
+vis: false
 
 # configs for extractor
 extractor_config:
-  vis: false
+  vis: true
   verbose: false
   min_point_num: 66
   scan_seg_num: 12
@@ -20,11 +20,11 @@ extractor_config:
 
 # configs for odometer
 odometer_config:
-  vis: true
-  verbose: false
+  vis: false
+  verbose: true
   nearby_scan_num: 1
   min_correspondence_num: 10
-  icp_iter_num: 2
+  icp_iter_num: 4
   solve_iter_num: 4
   corn_match_dist_sq_th: 16.0
   surf_match_dist_sq_th: 16.0
@@ -34,9 +34,13 @@ mapper_config:
   vis: false
   verbose: false
   map_shape: [3, 21, 21]
-  map_step: 50 # meter
+  map_step: 50
   submap_shape: [1, 5, 5]
+  icp_iter_num: 2
+  solve_iter_num: 4
+  min_correspondence_num: 10
   nearest_neighbor_k: 5
   neighbor_point_dist_sq_th: 1.0
   min_line_fit_score: 2
   min_plane_fit_score: 2
+  downsample_voxel_size: 0.6

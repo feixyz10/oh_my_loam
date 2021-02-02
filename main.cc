@@ -21,17 +21,14 @@ int main(int argc, char *argv[]) {
   bool log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
   std::string log_path = YAMLConfig::Instance()->Get<std::string>("log_path");
   std::string lidar = YAMLConfig::Instance()->Get<std::string>("lidar");
-
   // logging
   InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
   AUSER << "LOAM start..., lidar = " << lidar;
-
   // SLAM system
   OhMyLoam slam;
   if (!slam.Init()) {
     AFATAL << "Failed to initilize slam system.";
   }
-
   // ros
   ros::init(argc, argv, "oh_my_loam");
   ros::NodeHandle nh;

@@ -15,7 +15,7 @@ Eigen::Vector3d FitLine2D(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y;
   Eigen::RowVector2f centroid = data.colwise().mean();
   Eigen::MatrixX2f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX2f> svd(data_centered, Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::MatrixX2f> svd(data_centered, Eigen::ComputeFullV);
   Eigen::Vector2f normal = svd.matrixV().col(1);
   float c = -centroid * normal;
   if (score) *score = svd.singularValues()[0] / svd.singularValues()[1];
@@ -34,7 +34,7 @@ Eigen::Matrix<double, 6, 1> FitLine3D(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y, p.z;
   Eigen::RowVector3f centroid = data.colwise().mean();
   Eigen::MatrixX3f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeFullV);
   Eigen::Vector3f direction = svd.matrixV().col(0);
   Eigen::Matrix<double, 6, 1> line_coeffs;
   line_coeffs.topRows(3) = centroid.transpose().cast<double>();
@@ -55,7 +55,7 @@ Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y, p.z;
   Eigen::RowVector3f centroid = data.colwise().mean();
   Eigen::MatrixX3f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeFullV);
   Eigen::Vector3f normal = svd.matrixV().col(2);
   float d = -centroid * normal;
   if (score) {

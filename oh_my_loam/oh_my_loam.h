@@ -6,6 +6,7 @@
 #include "oh_my_loam/extractor/extractor.h"
 #include "oh_my_loam/mapper/mapper.h"
 #include "oh_my_loam/odometer/odometer.h"
+#include "oh_my_loam/visualizer/ohmyloam_visualizer.h"
 
 namespace oh_my_loam {
 
@@ -20,7 +21,10 @@ class OhMyLoam {
  private:
   void Reset();
 
-  void Visualize(double timestamp = 0.0);
+  void Visualize(const common::Pose3d &pose_curr2odom,
+                 const common::Pose3d &pose_curr2map,
+                 const TPointCloudConstPtr &cloud_corn,
+                 const TPointCloudConstPtr &cloud_surf, double timestamp = 0.0);
 
   std::unique_ptr<Extractor> extractor_{nullptr};
 
@@ -33,10 +37,12 @@ class OhMyLoam {
                       common::PointCloud *const cloud_out) const;
 
   std::vector<common::Pose3d> poses_curr2odom_;
-  std::vector<common::Pose3d> poses_curr2world_;
+  std::vector<common::Pose3d> poses_curr2map_;
 
   YAML::Node config_;
   bool is_vis_ = false;
+
+  std::unique_ptr<OhmyloamVisualizer> visualizer_{nullptr};
 
   DISALLOW_COPY_AND_ASSIGN(OhMyLoam);
 };

@@ -48,6 +48,8 @@ class Map {
 
   Index GetIndex(const TPoint &point) const;
 
+  bool IsIndexValid(const Index &index) const;
+
   TPointCloudPtr GetSurrPoints(const TPoint &point,
                                const std::vector<int> &surr_shapes) const;
 

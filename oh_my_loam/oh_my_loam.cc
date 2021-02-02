@@ -9,11 +9,12 @@
 namespace oh_my_loam {
 
 namespace {
-const double kPointMinDist = 0.1;
+const double kPointMinDist = 0.5;
 }  // namespace
 
 bool OhMyLoam::Init() {
   config_ = common::YAMLConfig::Instance()->config();
+  is_vis_ = config_["vis"].as<bool>();
   extractor_.reset(new ExtractorVLP16);
   if (!extractor_->Init()) {
     AERROR << "Failed to initialize extractor";
@@ -29,6 +30,7 @@ bool OhMyLoam::Init() {
     AERROR << "Failed to initialize mapper";
     return false;
   }
+  if (is_vis_) visualizer_.reset(new OhmyloamVisualizer);
   return true;
 }
 
@@ -53,11 +55,27 @@ void OhMyLoam::Run(double timestamp,
   mapper_->Process(timestamp, cloud_corn, cloud_surf, pose_curr2odom,
                    &pose_curr2map);
   poses_curr2odom_.push_back(pose_curr2odom);
-  poses_curr2world_.push_back(pose_curr2map);
-  if (is_vis_) Visualize(timestamp);
+  poses_curr2map_.push_back(pose_curr2map);
+  if (is_vis_) {
+    Visualize(pose_curr2odom, pose_curr2map, cloud_corn, cloud_surf, timestamp);
+  }
 }
 
-void OhMyLoam::Visualize(double timestamp) {}
+void OhMyLoam::Visualize(const common::Pose3d &pose_curr2odom,
+                         const common::Pose3d &pose_curr2map,
+                         const TPointCloudConstPtr &cloud_corn,
+                         const TPointCloudConstPtr &cloud_surf,
+                         double timestamp) {
+  std::shared_ptr<OhmyloamVisFrame> frame(new OhmyloamVisFrame);
+  frame->timestamp = timestamp;
+  frame->cloud_map_corn = mapper_->GetMapCloudCorn();
+  frame->cloud_map_surf = mapper_->GetMapCloudSurf();
+  frame->cloud_corn = cloud_corn;
+  frame->cloud_surf = cloud_surf;
+  frame->pose_odom = pose_curr2odom;
+  frame->pose_map = pose_curr2map;
+  visualizer_->Render(frame);
+}
 
 void OhMyLoam::RemoveOutliers(const common::PointCloud &cloud_in,
                               common::PointCloud *const cloud_out) const {
