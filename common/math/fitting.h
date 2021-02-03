@@ -1,5 +1,6 @@
 #pragma once
 
+#include <eigen3/Eigen/Dense>
 #include "common/pcl/pcl_types.h"
 
 namespace common {
@@ -15,11 +16,15 @@ Eigen::Vector3d FitLine2D(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y;
   Eigen::RowVector2f centroid = data.colwise().mean();
   Eigen::MatrixX2f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX2f> svd(data_centered, Eigen::ComputeFullV);
-  Eigen::Vector2f normal = svd.matrixV().col(1);
-  float c = -centroid * normal;
-  if (score) *score = svd.singularValues()[0] / svd.singularValues()[1];
-  return {normal.x(), normal.y(), c};
+  Eigen::Matrix2f cov_mat = data_centered.transpose() * data_centered;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> solver(cov_mat);
+  Eigen::Vector2f normal = solver.eigenvectors().col(0);
+  double c = -centroid * normal;
+  Eigen::Vector3d coeffs(normal(0), normal(1), c);
+  if (score) {
+    *score = solver.eigenvalues()[1] / (solver.eigenvalues()[0] + 1e-7);
+  }
+  return coeffs;
 }
 
 /**
@@ -34,13 +39,16 @@ Eigen::Matrix<double, 6, 1> FitLine3D(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y, p.z;
   Eigen::RowVector3f centroid = data.colwise().mean();
   Eigen::MatrixX3f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeFullV);
-  Eigen::Vector3f direction = svd.matrixV().col(0);
-  Eigen::Matrix<double, 6, 1> line_coeffs;
-  line_coeffs.topRows(3) = centroid.transpose().cast<double>();
-  line_coeffs.bottomRows(3) = direction.cast<double>();
-  if (score) *score = svd.singularValues()[0] / svd.singularValues()[1];
-  return line_coeffs;
+  Eigen::Matrix3f cov_mat = data_centered.transpose() * data_centered;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> solver(cov_mat);
+  Eigen::Vector3f direction = solver.eigenvectors().col(2);
+  Eigen::Matrix<double, 6, 1> coeffs;
+  coeffs.topRows(3) = centroid.transpose().cast<double>();
+  coeffs.bottomRows(3) = direction.cast<double>();
+  if (score) {
+    *score = solver.eigenvalues()[2] / (solver.eigenvalues()[1] + 1e-7);
+  }
+  return coeffs;
 }
 
 /**
@@ -55,14 +63,29 @@ Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud,
   for (const auto &p : cloud) data.row(i++) << p.x, p.y, p.z;
   Eigen::RowVector3f centroid = data.colwise().mean();
   Eigen::MatrixX3f data_centered = data.rowwise() - centroid;
-  Eigen::JacobiSVD<Eigen::MatrixX3f> svd(data_centered, Eigen::ComputeFullV);
-  Eigen::Vector3f normal = svd.matrixV().col(2);
-  float d = -centroid * normal;
-  if (score) {
-    *score = svd.singularValues()[1] * svd.singularValues()[1] /
-             (svd.singularValues()[0] * svd.singularValues()[2]);
-  }
-  return {normal.x(), normal.y(), normal.z(), d};
+  Eigen::Matrix3f cov_mat = data_centered.transpose() * data_centered;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> solver(cov_mat);
+  Eigen::Vector3f normal = solver.eigenvectors().col(0);
+  double d = -centroid * normal;
+  Eigen::Vector4d coeffs(normal(0), normal(1), normal(2), d);
+  if (score)
+    *score = solver.eigenvalues()[1] * solver.eigenvalues()[1] /
+             (solver.eigenvalues()[2] * solver.eigenvalues()[0] + 1e-7);
+  return coeffs;
 }
+
+// template <typename PT>
+// Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud) {
+//   Eigen::MatrixX3f A(cloud.size(), 3);  // NOLINT
+//   Eigen::VectorXf b(cloud.size());
+//   b.setConstant(-1.0);
+//   size_t i = 0;
+//   for (const auto &p : cloud) {
+//     A.row(i++) << p.x, p.y, p.z;
+//   }
+//   Eigen::Vector3f sol = A.colPivHouseholderQr().solve(b);
+//   Eigen::Vector4d coeff(sol(0), sol(1), sol(2), 1.0);
+//   return coeff / sol.norm();
+// }
 
 }  // namespace common

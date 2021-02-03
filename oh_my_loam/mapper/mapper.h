@@ -43,7 +43,7 @@ class Mapper {
   void MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
                  const TPointCloudConstPtr &cloud_curr,
                  const common::Pose3d &pose_curr2map,
-                 std::vector<PointLinePair> *const pairs) const;
+                 std::vector<PointLineCoeffPair> *const pairs) const;
 
   void MatchSurf(const pcl::KdTreeFLANN<TPoint> &kdtree,
                  const TPointCloudConstPtr &cloud_curr,
@@ -60,13 +60,6 @@ class Mapper {
                  const TPointCloudConstPtr &cloud_corn = nullptr,
                  const TPointCloudConstPtr &cloud_surf = nullptr);
 
-  void MatchCorn(const TPointCloudConstPtr &src,
-                 const TCTPointCloudConstPtr &tgt,
-                 std::vector<PointLinePair> *const pairs) const;
-
-  void MatchSurf(const TPointCloudConstPtr &src,
-                 const TCTPointCloudConstPtr &tgt,
-                 std::vector<PointLinePair> *const pairs) const;
   // map
   mutable std::mutex map_mutex_;
   std::unique_ptr<Map> corn_map_;

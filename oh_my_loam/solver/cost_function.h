@@ -39,6 +39,14 @@ struct PointPlanePair {
       : pt(pt), plane(pt1, pt2, pt3) {}
 };
 
+struct PointLineCoeffPair {
+  TPoint pt;
+  Eigen::Matrix<double, 6, 1> line_coeff;
+  PointLineCoeffPair(const TPoint &pt,
+                     const Eigen::Matrix<double, 6, 1> &line_coeff)
+      : pt(pt), line_coeff(line_coeff) {}
+};
+
 struct PointPlaneCoeffPair {
   TPoint pt;
   Eigen::Vector4d plane_coeff;
@@ -85,6 +93,27 @@ class PointPlaneCostFunction {
   PointPlanePair pair_;
   double time_;
   DISALLOW_COPY_AND_ASSIGN(PointPlaneCostFunction)
+};
+
+class PointLineCoeffCostFunction {
+ public:
+  PointLineCoeffCostFunction(const PointLineCoeffPair &pair, double time)
+      : pair_(pair), time_(time){};
+
+  template <typename T>
+  bool operator()(const T *const r_quat, const T *const t_vec,
+                  T *residual) const;
+
+  static ceres::CostFunction *Create(const PointLineCoeffPair &pair,
+                                     double time) {
+    return new ceres::AutoDiffCostFunction<PointLineCoeffCostFunction, 1, 4, 3>(
+        new PointLineCoeffCostFunction(pair, time));
+  }
+
+ private:
+  PointLineCoeffPair pair_;
+  double time_;
+  DISALLOW_COPY_AND_ASSIGN(PointLineCoeffCostFunction)
 };
 
 class PointPlaneCoeffCostFunction {
@@ -156,6 +185,30 @@ bool PointPlaneCostFunction::operator()(const T *const r_quat,
 
   Eigen::Matrix<T, 3, 1> normal = (p2 - p1).cross(p3 - p1).normalized();
   residual[0] = (p0 - p1).dot(normal);
+  return true;
+}
+
+template <typename T>
+bool PointLineCoeffCostFunction::operator()(const T *const r_quat,
+                                            const T *const t_vec,
+                                            T *residual) const {
+  Eigen::Matrix<T, 3, 1> p(T(pair_.pt.x), T(pair_.pt.y), T(pair_.pt.z));
+  Eigen::Matrix<T, 6, 1> coeff = pair_.line_coeff.template cast<T>();
+  Eigen::Matrix<T, 3, 1> p1 = coeff.topRows(3);
+  Eigen::Matrix<T, 3, 1> dir = coeff.bottomRows(3);
+
+  Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
+  Eigen::Matrix<T, 3, 1> t(t_vec[0], t_vec[1], t_vec[2]);
+  if (time_ <= 1.0 - kEpsilon) {
+    r = Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
+    t = T(time_) * t;
+  }
+  Eigen::Matrix<T, 3, 1> p0 = r * p + t;
+
+  Eigen::Matrix<T, 3, 1> cross = (p0 - p1).cross(dir);
+  residual[0] = cross[0];
+  residual[1] = cross[1];
+  residual[2] = cross[2];
   return true;
 }
 

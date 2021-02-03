@@ -13,6 +13,8 @@ class PoseSolver {
 
   void AddPointPlanePair(const PointPlanePair &pair, double time);
 
+  void AddPointLineCoeffPair(const PointLineCoeffPair &pair, double time);
+
   void AddPointPlaneCoeffPair(const PointPlaneCoeffPair &pair, double time);
 
   bool Solve(int max_iter_num = 5, bool verbose = false,

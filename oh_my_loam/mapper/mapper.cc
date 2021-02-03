@@ -16,8 +16,8 @@ using LineCoeff = Eigen::Matrix<double, 6, 1>;
 bool Mapper::Init() {
   const auto &config = YAMLConfig::Instance()->config();
   config_ = config["mapper_config"];
-  is_vis_ = config["vis"].as<bool>() && config_["vis"].as<bool>();
-  verbose_ = config_["vis"].as<bool>();
+  is_vis_ = config_["vis"].as<bool>();
+  verbose_ = config_["verbose"].as<bool>();
   AINFO << "Mapping visualizer: " << (is_vis_ ? "ON" : "OFF");
   map_shape_ = YAMLConfig::GetSeq<int>(config_["map_shape"]);
   submap_shape_ = YAMLConfig::GetSeq<int>(config_["submap_shape"]);
@@ -68,7 +68,7 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
     kdtree_corn.setInputCloud(cloud_corn_map);
     pcl::KdTreeFLANN<TPoint> kdtree_surf;
     kdtree_surf.setInputCloud(cloud_surf_map);
-    std::vector<PointLinePair> pl_pairs;
+    std::vector<PointLineCoeffPair> pl_pairs;
     MatchCorn(kdtree_corn, cloud_corn_map, pose_curr2map, &pl_pairs);
     std::vector<PointPlaneCoeffPair> pp_pairs;
     MatchSurf(kdtree_surf, cloud_surf_map, pose_curr2map, &pp_pairs);
@@ -83,7 +83,7 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
     }
     PoseSolver solver(pose_curr2map);
     for (const auto &pair : pl_pairs) {
-      solver.AddPointLinePair(pair, 1.0);
+      solver.AddPointLineCoeffPair(pair, 1.0);
     }
     for (const auto &pair : pp_pairs) {
       solver.AddPointPlaneCoeffPair(pair, 1.0);
@@ -105,7 +105,7 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
 void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
                        const TPointCloudConstPtr &cloud_curr,
                        const common::Pose3d &pose_curr2map,
-                       std::vector<PointLinePair> *const pairs) const {
+                       std::vector<PointLineCoeffPair> *const pairs) const {
   std::vector<int> indices;
   std::vector<float> dists;
   int nearest_neighbor_k = config_["nearest_neighbor_k"].as<int>();
@@ -123,10 +123,7 @@ void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
     double fit_score = 0.0;
     LineCoeff coeff = common::FitLine3D(neighbor_pts, &fit_score);
     if (fit_score < config_["min_line_fit_score"].as<double>()) continue;
-    TPoint pt1(coeff[0], coeff[1], coeff[2], 0.0);
-    TPoint pt2(coeff[0] + 0.1 * coeff[3], coeff[1] + 0.1 * coeff[4],
-               coeff[2] + 0.1 * coeff[5], 0.0);
-    pairs->emplace_back(pt, pt1, pt2);
+    pairs->emplace_back(pt, coeff);
   }
 }
 
