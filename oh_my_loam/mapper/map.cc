@@ -41,16 +41,16 @@ const TPointCloudPtr &Map::at(const Index &index) const {
 
 void Map::ShiftZ(int n) {
   if (n == 0) return;
-  if (n > 0) {
-    for (int k = shape_[0] - 1; k >= n; --k) {
-      std::swap(this->at(k), this->at(k - n));
+  if (n < 0) {
+    for (int k = shape_[0] - 1; k >= -n; --k) {
+      std::swap(this->at(k), this->at(k + n));
     }
-    for (int k = 0; k < n; ++k) this->at(k).Clear();
+    for (int k = 0; k < -n; ++k) this->at(k).Clear();
   } else {
     for (int k = 0; k < shape_[0] - n; ++k) {
       std::swap(this->at(k), this->at(k + n));
     }
-    for (int k = shape_[0] - n - 1; k < shape_[0]; ++k) {
+    for (int k = shape_[0] - n; k < shape_[0]; ++k) {
       this->at(k).Clear();
     }
   }
@@ -60,16 +60,16 @@ void Map::ShiftZ(int n) {
 void Map::ShiftY(int n) {
   if (n == 0) return;
   for (int k = 0; k < shape_[0]; ++k) {
-    if (n > 0) {
-      for (int j = shape_[1] - 1; j >= n; --j) {
-        std::swap(this->at(k, j), this->at(k, j - n));
+    if (n < 0) {
+      for (int j = shape_[1] - 1; j >= -n; --j) {
+        std::swap(this->at(k, j), this->at(k, j + n));
       }
-      for (int j = 0; j < n; ++j) this->at(k, j).Clear();
+      for (int j = 0; j < -n; ++j) this->at(k, j).Clear();
     } else {
       for (int j = 0; j < shape_[1] - n; ++j) {
         std::swap(this->at(k, j), this->at(k, j + n));
       }
-      for (int j = shape_[1] - n - 1; j < shape_[1]; ++j) {
+      for (int j = shape_[1] - n; j < shape_[1]; ++j) {
         this->at(k, j).Clear();
       }
     }
@@ -81,17 +81,17 @@ void Map::ShiftX(int n) {
   if (n == 0) return;
   for (int k = 0; k < shape_[0]; ++k) {
     for (int j = 0; j < shape_[1]; ++j) {
-      if (n > 0) {
-        for (int i = shape_[2] - 1; i >= n; --i) {
-          std::swap(this->at(k, j, i), this->at(k, j, i - n));
+      if (n < 0) {
+        for (int i = shape_[2] - 1; i >= -n; --i) {
+          std::swap(this->at(k, j, i), this->at(k, j, i + n));
         }
-        for (int i = 0; i < n; ++i) this->at(k, j, i)->clear();
+        for (int i = 0; i < -n; ++i) this->at(k, j, i)->clear();
 
       } else {
         for (int i = 0; i < shape_[2] - n; ++i) {
           std::swap(this->at(k, j, i), this->at(k, j, i + n));
         }
-        for (int i = shape_[2] - n - 1; i < shape_[2]; ++i) {
+        for (int i = shape_[2] - n; i < shape_[2]; ++i) {
           this->at(k, j, i)->clear();
         }
       }
@@ -151,6 +151,7 @@ void Map::Downsample(double voxel_size) {
 
 void Map::Downsample(const std::vector<Index> &indices, double voxel_size) {
   for (const auto &index : indices) {
+    if (!IsIndexValid(index)) continue;
     TPointCloudPtr cloud_down_sampled(new TPointCloud);
     common::VoxelDownSample<TPoint>(this->at(index), cloud_down_sampled.get(),
                                     voxel_size);
