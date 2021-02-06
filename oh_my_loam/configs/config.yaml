@@ -32,7 +32,7 @@ odometer_config:
 # configs for mapper
 mapper_config:
   vis: false
-  verbose: true
+  verbose: false
   map_shape: [3, 21, 21]
   map_step: 50
   submap_shape: [1, 5, 5]

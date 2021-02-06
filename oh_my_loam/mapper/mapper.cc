@@ -1,10 +1,12 @@
 #include "mapper.h"
 
+#include <memory>
 #include <mutex>
 
 #include "common/log/log.h"
 #include "common/math/fitting.h"
 #include "common/pcl/pcl_utils.h"
+#include "oh_my_loam/visualizer/mapper_visualizer.h"
 
 namespace oh_my_loam {
 
@@ -24,6 +26,7 @@ bool Mapper::Init() {
   map_step_ = config_["map_step"].as<double>();
   corn_map_.reset(new Map(map_shape_, map_step_));
   surf_map_.reset(new Map(map_shape_, map_step_));
+  if (is_vis_) visualizer_.reset(MapperVisualizer);
   return true;
 }
 
@@ -63,15 +66,13 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
   // AdjustMap(cnt);
   TPointCloudPtr cloud_corn_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
   TPointCloudPtr cloud_surf_map = surf_map_->GetSurrPoints(cnt, submap_shape_);
+  kdtree_corn_.setInputCloud(cloud_corn_map);
+  kdtree_surf_.setInputCloud(cloud_surf_map);
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
-    pcl::KdTreeFLANN<TPoint> kdtree_corn;
-    kdtree_corn.setInputCloud(cloud_corn_map);
-    pcl::KdTreeFLANN<TPoint> kdtree_surf;
-    kdtree_surf.setInputCloud(cloud_surf_map);
     std::vector<PointLineCoeffPair> pl_pairs;
-    MatchCorn(kdtree_corn, cloud_corn_map, pose_curr2map, &pl_pairs);
+    MatchCorn(cloud_corn_map, pose_curr2map, &pl_pairs);
     std::vector<PointPlaneCoeffPair> pp_pairs;
-    MatchSurf(kdtree_surf, cloud_surf_map, pose_curr2map, &pp_pairs);
+    MatchSurf(cloud_surf_map, pose_curr2map, &pp_pairs);
     AINFO_IF(verbose_) << "Iter " << i
                        << ": matched num: point2line = " << pl_pairs.size()
                        << ", point2plane = " << pp_pairs.size();
@@ -102,8 +103,7 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
   AUSER << "Mapper::Run: " << BLOCK_TIMER_STOP_FMT;
 }
 
-void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
-                       const TPointCloudConstPtr &cloud_curr,
+void Mapper::MatchCorn(const TPointCloudConstPtr &cloud_curr,
                        const common::Pose3d &pose_curr2map,
                        std::vector<PointLineCoeffPair> *const pairs) const {
   std::vector<int> indices;
@@ -113,8 +113,8 @@ void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
       config_["neighbor_point_dist_sq_th"].as<float>();
   for (const auto &pt : *cloud_curr) {
     TPoint pt_query = common::TransformPoint(pose_curr2map, pt);
-    if (kdtree.nearestKSearch(pt_query, nearest_neighbor_k, indices, dists) !=
-        nearest_neighbor_k) {
+    if (kdtree_corn_.nearestKSearch(pt_query, nearest_neighbor_k, indices,
+                                    dists) != nearest_neighbor_k) {
       continue;
     }
     if (dists.back() > neighbor_point_dist_sq_th) continue;
@@ -127,8 +127,7 @@ void Mapper::MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
   }
 }
 
-void Mapper::MatchSurf(const pcl::KdTreeFLANN<TPoint> &kdtree,
-                       const TPointCloudConstPtr &cloud_curr,
+void Mapper::MatchSurf(const TPointCloudConstPtr &cloud_curr,
                        const common::Pose3d &pose_curr2map,
                        std::vector<PointPlaneCoeffPair> *const pairs) const {
   std::vector<int> indices;
@@ -138,8 +137,8 @@ void Mapper::MatchSurf(const pcl::KdTreeFLANN<TPoint> &kdtree,
       config_["neighbor_point_dist_sq_th"].as<float>();
   for (const auto &pt : *cloud_curr) {
     TPoint pt_query = common::TransformPoint(pose_curr2map, pt);
-    if (kdtree.nearestKSearch(pt_query, nearest_neighbor_k, indices, dists) !=
-        nearest_neighbor_k) {
+    if (kdtree_surf_.nearestKSearch(pt_query, nearest_neighbor_k, indices,
+                                    dists) != nearest_neighbor_k) {
       continue;
     }
     if (dists.back() > neighbor_point_dist_sq_th) continue;
@@ -228,6 +227,19 @@ Mapper::State Mapper::GetState() const {
 void Mapper::SetState(State state) {
   std::lock_guard<std::mutex> lock(state_mutex_);
   state_ = state;
+}
+
+void Mapper::Visualize(const std::vector<PointLineCoeffPair> &pl_pairs,
+                       const std::vector<PointPlaneCoeffPair> &pp_pairs,
+                       const common::Pose3d &pose_curr2odom,
+                       const common::Pose3d &pose_curr2map, double timestamp) {
+  std::shared_ptr<MapperVisFrame> frame(new MapperVisFrame);
+  frame->timestamp = timestamp;
+  frame->cloud_corn = kdtree_corn_.getInputCloud()->makeShared();
+  frame->cloud_surf = kdtree_surf_.getInputCloud()->makeShared();
+  frame->pl_pairs = pl_pairs;
+  frame->pp_pairs = pp_pairs;
+  frame->pose_curr2world
 }
 
 }  // namespace oh_my_loam

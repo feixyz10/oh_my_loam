@@ -54,10 +54,10 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
     }
     PoseSolver solver(pose_curr2last_);
     for (const auto &pair : pl_pairs) {
-      solver.AddPointLinePair(pair, GetTime(pair.pt));
+      solver.AddPointLinePair(pair, 1.0);
     }
     for (const auto &pair : pp_pairs) {
-      solver.AddPointPlanePair(pair, GetTime(pair.pt));
+      solver.AddPointPlanePair(pair, 1.0);
     }
     bool is_converge = solver.Solve(config_["solve_iter_num"].as<int>(),
                                     verbose_, &pose_curr2last_);
@@ -190,8 +190,8 @@ void Odometer::Visualize(const std::vector<PointLinePair> &pl_pairs,
                          double timestamp) const {
   std::shared_ptr<OdometerVisFrame> frame(new OdometerVisFrame);
   frame->timestamp = timestamp;
-  frame->cloud_corn = kdtree_corn_.getInputCloud();
-  frame->cloud_surf = kdtree_surf_.getInputCloud();
+  frame->cloud_corn = kdtree_corn_.getInputCloud()->makeShared();
+  frame->cloud_surf = kdtree_surf_.getInputCloud()->makeShared();
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
   frame->pose_curr2last = pose_curr2last_;

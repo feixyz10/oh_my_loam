@@ -10,7 +10,9 @@
 #include "oh_my_loam/base/types.h"
 #include "oh_my_loam/base/utils.h"
 #include "oh_my_loam/mapper/map.h"
+#include "oh_my_loam/solver/cost_function.h"
 #include "oh_my_loam/solver/solver.h"
+#include "oh_my_loam/visualizer/mapper_visualizer.h"
 
 namespace oh_my_loam {
 
@@ -40,13 +42,11 @@ class Mapper {
            const TPointCloudConstPtr &cloud_surf,
            const common::Pose3d &pose_init);
 
-  void MatchCorn(const pcl::KdTreeFLANN<TPoint> &kdtree,
-                 const TPointCloudConstPtr &cloud_curr,
+  void MatchCorn(const TPointCloudConstPtr &cloud_curr,
                  const common::Pose3d &pose_curr2map,
                  std::vector<PointLineCoeffPair> *const pairs) const;
 
-  void MatchSurf(const pcl::KdTreeFLANN<TPoint> &kdtree,
-                 const TPointCloudConstPtr &cloud_curr,
+  void MatchSurf(const TPointCloudConstPtr &cloud_curr,
                  const common::Pose3d &pose_curr2map,
                  std::vector<PointPlaneCoeffPair> *const pairs) const;
 
@@ -60,10 +60,17 @@ class Mapper {
                  const TPointCloudConstPtr &cloud_corn = nullptr,
                  const TPointCloudConstPtr &cloud_surf = nullptr);
 
+  void Visualize(const std::vector<PointLineCoeffPair> &pl_pairs,
+                 const std::vector<PointPlaneCoeffPair> &pp_pairs,
+                 const common::Pose3d &pose_curr2odom,
+                 const common::Pose3d &pose_curr2map, double timestamp = 0.0);
+
   // map
   mutable std::mutex map_mutex_;
   std::unique_ptr<Map> corn_map_;
   std::unique_ptr<Map> surf_map_;
+  pcl::KdTreeFLANN<TPoint> kdtree_corn_;
+  pcl::KdTreeFLANN<TPoint> kdtree_surf_;
   // state
   mutable std::mutex state_mutex_;
   State state_ = UN_INIT;
@@ -76,6 +83,8 @@ class Mapper {
   double map_step_;
   bool is_vis_ = false;
   bool verbose_ = false;
+
+  std::unique_ptr<MapperVisualizer> visualizer_{nullptr};
 
   DISALLOW_COPY_AND_ASSIGN(Mapper)
 };

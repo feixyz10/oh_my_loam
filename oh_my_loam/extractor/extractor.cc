@@ -75,7 +75,8 @@ void Extractor::SplitScan(const common::PointCloud &cloud,
       half_passed = true;
       yaw_diff += kTwoPi;
     }
-    double time = std::min(yaw_diff / kTwoPi, 1 - kEps) + scan_id;
+    // double time = std::min(yaw_diff / kTwoPi, 1 - kEps) + scan_id;
+    double time = 0.999999 + scan_id;
     scans->at(scan_id).push_back(
         {pt.x, pt.y, pt.z, static_cast<float>(time), std::nanf("")});
   }
