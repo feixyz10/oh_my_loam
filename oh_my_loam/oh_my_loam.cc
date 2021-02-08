@@ -54,25 +54,20 @@ void OhMyLoam::Run(double timestamp,
   const auto &cloud_surf = odometer_->GetCloudSurf()->makeShared();
   mapper_->Process(timestamp, cloud_corn, cloud_surf, pose_curr2odom,
                    &pose_curr2map);
-  poses_curr2odom_.push_back(pose_curr2odom);
-  poses_curr2map_.push_back(pose_curr2map);
   if (is_vis_) {
-    Visualize(pose_curr2odom, pose_curr2map, cloud_corn, cloud_surf, timestamp);
+    Visualize(pose_curr2map, cloud_corn, cloud_surf, timestamp);
   }
 }
 
-void OhMyLoam::Visualize(const common::Pose3d &pose_curr2odom,
-                         const common::Pose3d &pose_curr2map,
-                         const TPointCloudConstPtr &cloud_corn,
-                         const TPointCloudConstPtr &cloud_surf,
-                         double timestamp) {
+void OhMyLoam::Visualize(const common::Pose3d &pose_curr2map,
+                         const TPointCloudPtr &cloud_corn,
+                         const TPointCloudPtr &cloud_surf, double timestamp) {
   std::shared_ptr<OhmyloamVisFrame> frame(new OhmyloamVisFrame);
   frame->timestamp = timestamp;
   frame->cloud_map_corn = mapper_->GetMapCloudCorn();
   frame->cloud_map_surf = mapper_->GetMapCloudSurf();
-  frame->cloud_corn = cloud_corn;
-  frame->cloud_surf = cloud_surf;
-  frame->pose_odom = pose_curr2odom;
+  frame->cloud_corn = cloud_corn->makeShared();
+  frame->cloud_surf = cloud_surf->makeShared();
   frame->pose_map = pose_curr2map;
   visualizer_->Render(frame);
 }

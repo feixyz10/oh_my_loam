@@ -34,7 +34,7 @@ class Map {
 
   const TPointCloudPtr &at(const Index &index) const;
 
-  void Clear();
+  void clear();
 
   void ShiftZ(int n);
 
@@ -42,16 +42,16 @@ class Map {
 
   void ShiftX(int n);
 
-  const std::vector<int> Shape() const {
+  const std::vector<int> shape() const {
     return std::vector<int>(shape_, shape_ + 3);
   }
 
   Index GetIndex(const TPoint &point) const;
 
-  bool IsIndexValid(const Index &index) const;
+  bool CheckIndex(const Index &index) const;
 
-  TPointCloudPtr GetSurrPoints(const TPoint &point,
-                               const std::vector<int> &surr_shapes) const;
+  TPointCloudPtr GetSubmapPoints(const TPoint &point,
+                                 const std::vector<int> &submap_shapes) const;
 
   TPointCloudPtr GetAllPoints() const;
 
@@ -75,8 +75,8 @@ class Map {
 
   const TPointCloudPtr &at(int z_idx, int y_idx, int x_idx) const;
 
-  std::vector<Index> GetSurrIndices(const TPoint &point,
-                                    const std::vector<int> &surr_shapes) const;
+  std::vector<Index> GetSubmapIndices(
+      const TPoint &point, const std::vector<int> &submap_shapes) const;
 
   std::vector<Index> GetAllIndices() const;
 
@@ -97,7 +97,7 @@ class Row {
 
   const TPointCloudPtr &at(int idx) const;
 
-  void Clear();
+  void clear();
 
   TPointCloudPtr GetAllPoints() const;
 
@@ -109,7 +109,7 @@ class Grid {
  public:
   Grid(int m, int n);
 
-  void Clear();
+  void clear();
 
   Row &at(int idx);
 

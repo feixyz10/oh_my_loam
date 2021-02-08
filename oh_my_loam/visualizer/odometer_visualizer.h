@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/geometry/trajectory.h"
 #include "common/visualizer/lidar_visualizer.h"
 #include "oh_my_loam/solver/cost_function.h"
 
@@ -29,16 +30,12 @@ class OdometerVisualizer : public common::LidarVisualizer {
   void DrawSurf(const common::Pose3d &pose,
                 const std::vector<PointPlanePair> &pairs);
 
-  void DrawTrajectory();
-
   void KeyboardEventCallback(
       const pcl::visualization::KeyboardEvent &event) override;
 
   bool trans_ = true;
-  bool corn_connect_ = false;
-  bool surf_connect_ = false;
 
-  std::vector<common::Pose3d> poses_;
+  common::Trajectory traj_;
 };
 
 }  // namespace oh_my_loam

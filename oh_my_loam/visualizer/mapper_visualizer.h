@@ -30,8 +30,6 @@ class MapperVisualizer : public common::LidarVisualizer {
   void DrawSurf(const common::Pose3d &pose_odom, const common::Pose3d &pose_map,
                 const std::vector<PointPlaneCoeffPair> &pairs);
 
-  void DrawTrajectory();
-
   void KeyboardEventCallback(
       const pcl::visualization::KeyboardEvent &event) override;
 

@@ -2,7 +2,7 @@
 lidar: VPL16
 log_to_file: false
 log_path: /data/log/oh_my_loam
-vis: false
+vis: true
 
 # configs for extractor
 extractor_config:
@@ -31,7 +31,7 @@ odometer_config:
 
 # configs for mapper
 mapper_config:
-  vis: true
+  vis: false
   verbose: false
   map_shape: [3, 21, 21]
   map_step: 50

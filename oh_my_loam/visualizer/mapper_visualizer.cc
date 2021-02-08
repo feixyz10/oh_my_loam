@@ -18,7 +18,8 @@ void MapperVisualizer::Draw() {
 
   traj_odom_.AddPose(frame.pose_curr2odom);
   traj_map_.AddPose(frame.pose_curr2map);
-  DrawTrajectory();
+  AddTrajectory(traj_odom_, PINK, "traj_odmo", viewer_.get());
+  AddTrajectory(traj_map_, PURPLE, "traj_map", viewer_.get());
 }
 
 void MapperVisualizer::DrawCorn(const common::Pose3d &pose_odom,
@@ -45,11 +46,6 @@ void MapperVisualizer::DrawSurf(const common::Pose3d &pose_odom,
     TransformToStart(pose, pair.pt, &src->at(i));
   }
   DrawPointCloud<TPoint>(src, CYAN, "src_surf", 4);
-}
-
-void MapperVisualizer::DrawTrajectory() {
-  common::AddTrajectory(traj_odom_, PINK, "traj_odmo", viewer_.get());
-  common::AddTrajectory(traj_map_, PURPLE, "traj_map", viewer_.get());
 }
 
 void MapperVisualizer::KeyboardEventCallback(

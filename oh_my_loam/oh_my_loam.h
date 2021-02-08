@@ -21,23 +21,19 @@ class OhMyLoam {
  private:
   void Reset();
 
-  void Visualize(const common::Pose3d &pose_curr2odom,
-                 const common::Pose3d &pose_curr2map,
-                 const TPointCloudConstPtr &cloud_corn,
-                 const TPointCloudConstPtr &cloud_surf, double timestamp = 0.0);
+  void Visualize(const common::Pose3d &pose_curr2map,
+                 const TPointCloudPtr &cloud_corn,
+                 const TPointCloudPtr &cloud_surf, double timestamp = 0.0);
+
+  // remove outliers: nan or very close points
+  void RemoveOutliers(const common::PointCloud &cloud_in,
+                      common::PointCloud *const cloud_out) const;
 
   std::unique_ptr<Extractor> extractor_{nullptr};
 
   std::unique_ptr<Odometer> odometer_{nullptr};
 
   std::unique_ptr<Mapper> mapper_{nullptr};
-
-  // remove outliers: nan or very close points
-  void RemoveOutliers(const common::PointCloud &cloud_in,
-                      common::PointCloud *const cloud_out) const;
-
-  std::vector<common::Pose3d> poses_curr2odom_;
-  std::vector<common::Pose3d> poses_curr2map_;
 
   YAML::Node config_;
   bool is_vis_ = false;

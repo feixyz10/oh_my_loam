@@ -19,8 +19,8 @@ Map::Map(const std::vector<int> &shape, const std::vector<double> &step) {
 Map::Map(const std::vector<int> &shape, double step)
     : Map(shape, {step, step, step}) {}
 
-void Map::Clear() {
-  for (auto &grid : map_) grid.Clear();
+void Map::clear() {
+  for (auto &grid : map_) grid.clear();
 }
 
 TPointCloudPtr &Map::at(int z_idx, int y_idx, int x_idx) {
@@ -45,13 +45,13 @@ void Map::ShiftZ(int n) {
     for (int k = shape_[0] - 1; k >= -n; --k) {
       std::swap(this->at(k), this->at(k + n));
     }
-    for (int k = 0; k < -n; ++k) this->at(k).Clear();
+    for (int k = 0; k < -n; ++k) this->at(k).clear();
   } else {
     for (int k = 0; k < shape_[0] - n; ++k) {
       std::swap(this->at(k), this->at(k + n));
     }
     for (int k = shape_[0] - n; k < shape_[0]; ++k) {
-      this->at(k).Clear();
+      this->at(k).clear();
     }
   }
   center_[0] -= n;
@@ -64,13 +64,13 @@ void Map::ShiftY(int n) {
       for (int j = shape_[1] - 1; j >= -n; --j) {
         std::swap(this->at(k, j), this->at(k, j + n));
       }
-      for (int j = 0; j < -n; ++j) this->at(k, j).Clear();
+      for (int j = 0; j < -n; ++j) this->at(k, j).clear();
     } else {
       for (int j = 0; j < shape_[1] - n; ++j) {
         std::swap(this->at(k, j), this->at(k, j + n));
       }
       for (int j = shape_[1] - n; j < shape_[1]; ++j) {
-        this->at(k, j).Clear();
+        this->at(k, j).clear();
       }
     }
   }
@@ -108,17 +108,16 @@ Index Map::GetIndex(const TPoint &point) const {
   return index;
 }
 
-bool Map::IsIndexValid(const Index &index) const {
-  int k = index.k + center_[0], j = index.j + center_[1],
-      i = index.i + center_[2];
+bool Map::CheckIndex(const Index &index) const {
+  int k = index.k, j = index.j, i = index.i;
   return k >= 0 && k < shape_[0] && j >= 0 && j < shape_[1] && i >= 0 &&
          i < shape_[2];
 }
 
-TPointCloudPtr Map::GetSurrPoints(const TPoint &point,
-                                  const std::vector<int> &surr_shapes) const {
+TPointCloudPtr Map::GetSubmapPoints(
+    const TPoint &point, const std::vector<int> &submap_shapes) const {
   TPointCloudPtr cloud(new TPointCloud);
-  for (const auto &index : GetSurrIndices(point, surr_shapes)) {
+  for (const auto &index : GetSubmapIndices(point, submap_shapes)) {
     *cloud += *this->at(index);
   }
   return cloud;
@@ -135,7 +134,7 @@ void Map::AddPoints(const TPointCloudConstPtr &cloud,
   std::set<Index, Index::Comp> index_set;
   for (const auto &point : *cloud) {
     Index index = GetIndex(point);
-    if (!IsIndexValid(index)) continue;
+    if (!CheckIndex(index)) continue;
     this->at(index)->push_back(point);
     if (indices) index_set.insert(index);
   }
@@ -151,11 +150,9 @@ void Map::Downsample(double voxel_size) {
 
 void Map::Downsample(const std::vector<Index> &indices, double voxel_size) {
   for (const auto &index : indices) {
-    if (!IsIndexValid(index)) continue;
-    TPointCloudPtr cloud_down_sampled(new TPointCloud);
-    common::VoxelDownSample<TPoint>(this->at(index), cloud_down_sampled.get(),
+    if (!CheckIndex(index)) continue;
+    common::VoxelDownSample<TPoint>(this->at(index), this->at(index).get(),
                                     voxel_size);
-    this->at(index) = cloud_down_sampled;
   }
 }
 
@@ -175,11 +172,12 @@ const Row &Map::at(int z_idx, int y_idx) const {
   return map_.at(z_idx).at(y_idx);
 }
 
-std::vector<Index> Map::GetSurrIndices(
-    const TPoint &point, const std::vector<int> &surr_shapes) const {
+std::vector<Index> Map::GetSubmapIndices(
+    const TPoint &point, const std::vector<int> &submap_shapes) const {
   std::vector<Index> indices;
   Index index = GetIndex(point);
-  int nz = surr_shapes[0] / 2, ny = surr_shapes[1] / 2, nx = surr_shapes[2] / 2;
+  int nz = submap_shapes[0] / 2, ny = submap_shapes[1] / 2,
+      nx = submap_shapes[2] / 2;
   for (int k = -nz; k <= nz; ++k) {
     int idx_k = index.k + k;
     if (idx_k < 0 || idx_k >= shape_[0]) continue;
@@ -221,7 +219,7 @@ const TPointCloudPtr &Row::at(int idx) const {
   return row_.at(idx);
 }
 
-void Row::Clear() {
+void Row::clear() {
   for (auto &cloud : row_) cloud->clear();
 }
 
@@ -235,8 +233,8 @@ Grid::Grid(int m, int n) {
   for (int i = 0; i < m; ++i) grid_.emplace_back(n);
 }
 
-void Grid::Clear() {
-  for (auto &row : grid_) row.Clear();
+void Grid::clear() {
+  for (auto &row : grid_) row.clear();
 }
 
 Row &Grid::at(int idx) {
