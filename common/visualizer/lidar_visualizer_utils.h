@@ -8,6 +8,7 @@
 #include <string>
 
 #include "common/color/color.h"
+#include "common/geometry/trajectory.h"
 #include "common/pcl/pcl_types.h"
 
 namespace common {
@@ -48,5 +49,8 @@ void AddSphere(const PT &center, double radius, const Color &color,
                const std::string &id, PCLVisualizer *const viewer) {
   viewer->addSphere(center, radius, color.r, color.g, color.b, id);
 }
+
+void AddTrajectory(const Trajectory &trajectory, const Color &color,
+                   const std::string &id, PCLVisualizer *const viewer);
 
 }  // namespace common

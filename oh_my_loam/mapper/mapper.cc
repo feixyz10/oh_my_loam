@@ -26,7 +26,7 @@ bool Mapper::Init() {
   map_step_ = config_["map_step"].as<double>();
   corn_map_.reset(new Map(map_shape_, map_step_));
   surf_map_.reset(new Map(map_shape_, map_step_));
-  if (is_vis_) visualizer_.reset(MapperVisualizer);
+  if (is_vis_) visualizer_.reset(new MapperVisualizer);
   return true;
 }
 
@@ -64,15 +64,18 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
   TPoint cnt(pose_curr2map.t_vec().x(), pose_curr2map.t_vec().y(),
              pose_curr2map.t_vec().z());
   // AdjustMap(cnt);
-  TPointCloudPtr cloud_corn_map = corn_map_->GetSurrPoints(cnt, submap_shape_);
-  TPointCloudPtr cloud_surf_map = surf_map_->GetSurrPoints(cnt, submap_shape_);
-  kdtree_corn_.setInputCloud(cloud_corn_map);
-  kdtree_surf_.setInputCloud(cloud_surf_map);
+  // TPointCloudPtr cloud_corn_map = corn_map_->GetSurrPoints(cnt,
+  // submap_shape_); TPointCloudPtr cloud_surf_map =
+  // surf_map_->GetSurrPoints(cnt, submap_shape_);
+  kdtree_corn_.setInputCloud(cloud_corn_map_);
+  kdtree_surf_.setInputCloud(cloud_surf_map_);
+  std::vector<PointLineCoeffPair> pl_pairs;
+  std::vector<PointPlaneCoeffPair> pp_pairs;
   for (int i = 0; i < config_["icp_iter_num"].as<int>(); ++i) {
-    std::vector<PointLineCoeffPair> pl_pairs;
-    MatchCorn(cloud_corn_map, pose_curr2map, &pl_pairs);
-    std::vector<PointPlaneCoeffPair> pp_pairs;
-    MatchSurf(cloud_surf_map, pose_curr2map, &pp_pairs);
+    std::vector<PointLineCoeffPair>().swap(pl_pairs);
+    std::vector<PointPlaneCoeffPair>().swap(pp_pairs);
+    MatchCorn(cloud_corn, pose_curr2map, &pl_pairs);
+    MatchSurf(cloud_surf, pose_curr2map, &pp_pairs);
     AINFO_IF(verbose_) << "Iter " << i
                        << ": matched num: point2line = " << pl_pairs.size()
                        << ", point2plane = " << pp_pairs.size();
@@ -97,10 +100,11 @@ void Mapper::Run(const TPointCloudConstPtr &cloud_corn,
                        << BLOCK_TIMER_STOP_FMT;
   }
   UpdateMap(pose_curr2map, cloud_corn, cloud_surf);
-  SetState(DONE);  // be careful with deadlock
   std::lock_guard<std::mutex> lock(state_mutex_);
   pose_odom2map_ = pose_curr2map * pose_curr2odom.Inv();
   AUSER << "Mapper::Run: " << BLOCK_TIMER_STOP_FMT;
+  if (is_vis_) Visualize(pl_pairs, pp_pairs, pose_curr2odom, pose_curr2map);
+  state_ = DONE;  // be careful with deadlock
 }
 
 void Mapper::MatchCorn(const TPointCloudConstPtr &cloud_curr,
@@ -119,7 +123,7 @@ void Mapper::MatchCorn(const TPointCloudConstPtr &cloud_curr,
     }
     if (dists.back() > neighbor_point_dist_sq_th) continue;
     TPointCloud neighbor_pts;
-    pcl::copyPointCloud(*cloud_curr, indices, neighbor_pts);
+    pcl::copyPointCloud(*kdtree_corn_.getInputCloud(), indices, neighbor_pts);
     double fit_score = 0.0;
     LineCoeff coeff = common::FitLine3D(neighbor_pts, &fit_score);
     if (fit_score < config_["min_line_fit_score"].as<double>()) continue;
@@ -143,7 +147,7 @@ void Mapper::MatchSurf(const TPointCloudConstPtr &cloud_curr,
     }
     if (dists.back() > neighbor_point_dist_sq_th) continue;
     TPointCloud neighbor_pts;
-    pcl::copyPointCloud(*cloud_curr, indices, neighbor_pts);
+    pcl::copyPointCloud(*kdtree_surf_.getInputCloud(), indices, neighbor_pts);
     double fit_score = 0.0;
     Eigen::Vector4d coeff = common::FitPlane(neighbor_pts, &fit_score);
     if (fit_score < config_["min_plane_fit_score"].as<double>()) continue;
@@ -189,16 +193,20 @@ void Mapper::AdjustMap(const TPoint &center) {
 void Mapper::UpdateMap(const common::Pose3d &pose_curr2map,
                        const TPointCloudConstPtr &cloud_corn,
                        const TPointCloudConstPtr &cloud_surf) {
-  auto update_map = [&](const TPointCloudConstPtr &cloud, Map *const map) {
+  auto update_map = [&](const TPointCloudConstPtr &cloud,
+                        /*Map*const map*/ const TPointCloudPtr &cloud_map) {
     TPointCloudPtr cloud_trans(new TPointCloud);
     common::TransformPointCloud(pose_curr2map, *cloud, cloud_trans.get());
-    std::vector<Index> indices;
-    map->AddPoints(cloud_trans, &indices);
-    map->Downsample(indices, config_["downsample_voxel_size"].as<double>());
+    *cloud_map += *cloud_trans;
+    // std::vector<Index> indices;
+    // map->AddPoints(cloud_trans, &indices);
+    // map->Downsample(indices, config_["downsample_voxel_size"].as<double>());
+    common::VoxelDownSample(cloud_map, cloud_map.get(),
+                            config_["downsample_voxel_size"].as<double>());
   };
   std::lock_guard<std::mutex> lock(map_mutex_);
-  update_map(cloud_corn, corn_map_.get());
-  update_map(cloud_surf, surf_map_.get());
+  update_map(cloud_corn, cloud_corn_map_);
+  update_map(cloud_surf, cloud_surf_map_);
 }
 
 TPointCloudPtr Mapper::GetMapCloudCorn() const {
@@ -237,9 +245,13 @@ void Mapper::Visualize(const std::vector<PointLineCoeffPair> &pl_pairs,
   frame->timestamp = timestamp;
   frame->cloud_corn = kdtree_corn_.getInputCloud()->makeShared();
   frame->cloud_surf = kdtree_surf_.getInputCloud()->makeShared();
+  AINFO << "Map point num: " << frame->cloud_corn->size() << ", "
+        << frame->cloud_surf->size();
   frame->pl_pairs = pl_pairs;
   frame->pp_pairs = pp_pairs;
-  frame->pose_curr2world
+  frame->pose_curr2odom = pose_curr2odom;
+  frame->pose_curr2map = pose_curr2map;
+  visualizer_->Render(frame);
 }
 
 }  // namespace oh_my_loam

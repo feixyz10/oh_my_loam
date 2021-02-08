@@ -7,10 +7,6 @@
 
 namespace oh_my_loam {
 
-namespace {
-const double kEpsilon = 1.0e-6;
-}
-
 struct PointLinePair {
   TPoint pt;
   struct Line {
@@ -149,7 +145,7 @@ bool PointLineCostFunction::operator()(const T *const r_quat,
 
   Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
   Eigen::Matrix<T, 3, 1> t(t_vec[0], t_vec[1], t_vec[2]);
-  if (time_ <= 1.0 - kEpsilon) {
+  if (time_ <= 1.0 - 1.0e-6) {
     r = Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
     t = T(time_) * t;
   }
@@ -177,7 +173,7 @@ bool PointPlaneCostFunction::operator()(const T *const r_quat,
 
   Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
   Eigen::Matrix<T, 3, 1> t(t_vec[0], t_vec[1], t_vec[2]);
-  if (time_ <= 1.0 - kEpsilon) {
+  if (time_ <= 1.0 - 1.0e-6) {
     r = Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
     t = T(time_) * t;
   }
@@ -199,7 +195,7 @@ bool PointLineCoeffCostFunction::operator()(const T *const r_quat,
 
   Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
   Eigen::Matrix<T, 3, 1> t(t_vec[0], t_vec[1], t_vec[2]);
-  if (time_ <= 1.0 - kEpsilon) {
+  if (time_ <= 1.0 - 1.0e-6) {
     r = Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
     t = T(time_) * t;
   }
@@ -221,7 +217,7 @@ bool PointPlaneCoeffCostFunction::operator()(const T *const r_quat,
 
   Eigen::Quaternion<T> r(r_quat[3], r_quat[0], r_quat[1], r_quat[2]);
   Eigen::Matrix<T, 3, 1> t(t_vec[0], t_vec[1], t_vec[2]);
-  if (time_ <= 1.0 - kEpsilon) {
+  if (time_ <= 1.0 - 1.0e-6) {
     r = Eigen::Quaternion<T>::Identity().slerp(T(time_), r);
     t = T(time_) * t;
   }

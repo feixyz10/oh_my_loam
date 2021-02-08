@@ -98,7 +98,13 @@ void VoxelDownSample(const typename pcl::PointCloud<PT>::ConstPtr &cloud_in,
   pcl::VoxelGrid<PT> filter;
   filter.setInputCloud(cloud_in);
   filter.setLeafSize(voxel_size, voxel_size, voxel_size);
-  filter.filter(*cloud_out);
+  if (cloud_out == cloud_in.get()) {
+    pcl::PointCloud<PT> cloud_downsampled;
+    filter.filter(cloud_downsampled);
+    cloud_out->swap(cloud_downsampled);
+  } else {
+    filter.filter(*cloud_out);
+  }
 }
 
 }  // namespace common

@@ -1,13 +1,14 @@
 #pragma once
 
+#include "common/geometry/trajectory.h"
 #include "common/visualizer/lidar_visualizer.h"
 #include "oh_my_loam/solver/cost_function.h"
 
 namespace oh_my_loam {
 
 struct MapperVisFrame : public common::LidarVisFrame {
-  TPointCloudConstPtr cloud_surf;
   TPointCloudConstPtr cloud_corn;
+  TPointCloudConstPtr cloud_surf;
   std::vector<PointLineCoeffPair> pl_pairs;
   std::vector<PointPlaneCoeffPair> pp_pairs;
   common::Pose3d pose_curr2odom;
@@ -23,10 +24,10 @@ class MapperVisualizer : public common::LidarVisualizer {
  private:
   void Draw() override;
 
-  void DrawCorn(const common::Pose3d &pose,
+  void DrawCorn(const common::Pose3d &pose_odom, const common::Pose3d &pose_map,
                 const std::vector<PointLineCoeffPair> &pairs);
 
-  void DrawSurf(const common::Pose3d &pose,
+  void DrawSurf(const common::Pose3d &pose_odom, const common::Pose3d &pose_map,
                 const std::vector<PointPlaneCoeffPair> &pairs);
 
   void DrawTrajectory();
@@ -36,7 +37,8 @@ class MapperVisualizer : public common::LidarVisualizer {
 
   bool trans_ = true;
 
-  std::vector<common::Pose3d> poses_;
+  common::Trajectory traj_odom_;
+  common::Trajectory traj_map_;
 };
 
 }  // namespace oh_my_loam

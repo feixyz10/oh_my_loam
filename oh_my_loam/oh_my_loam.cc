@@ -50,8 +50,8 @@ void OhMyLoam::Run(double timestamp,
   common::Pose3d pose_curr2odom;
   odometer_->Process(timestamp, features, &pose_curr2odom);
   common::Pose3d pose_curr2map;
-  const auto &cloud_corn = odometer_->GetCloudCorn();
-  const auto &cloud_surf = odometer_->GetCloudSurf();
+  const auto &cloud_corn = odometer_->GetCloudCorn()->makeShared();
+  const auto &cloud_surf = odometer_->GetCloudSurf()->makeShared();
   mapper_->Process(timestamp, cloud_corn, cloud_surf, pose_curr2odom,
                    &pose_curr2map);
   poses_curr2odom_.push_back(pose_curr2odom);

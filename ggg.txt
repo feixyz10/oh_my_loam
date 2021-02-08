@@ -1,0 +1,42 @@
+scan line number 16 
+line resolution 0.200000 plane resolution 0.400000 
+Mapping 10 Hz 
+... logging to /home/liufei/.ros/log/8dd723e0-69e0-11eb-931b-4cedfbbfbb36/roslaunch-liufei-fabu-4816.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/liufei/catkin_ws/src/A-LOAM/launch/aloam_velodyne_VLP_16.launch
+[1mstarted roslaunch server http://liufei-fabu:38301/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /mapping_line_resolution: 0.2
+ * /mapping_plane_resolution: 0.4
+ * /mapping_skip_frame: 1
+ * /minimum_range: 0.3
+ * /rosdistro: kinetic
+ * /rosversion: 1.12.16
+ * /scan_line: 16
+
+NODES
+  /
+    alaserMapping (aloam_velodyne/alaserMapping)
+    alaserOdometry (aloam_velodyne/alaserOdometry)
+    ascanRegistration (aloam_velodyne/ascanRegistration)
+    rviz (rviz/rviz)
+
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/liufei/catkin_ws/src/A-LOAM/launch/aloam_velodyne_VLP_16.launch http://localhost:11311
+[1mprocess[ascanRegistration-1]: started with pid [4854][0m
+[1mprocess[alaserOdometry-2]: started with pid [4855][0m
+[1mprocess[alaserMapping-3]: started with pid [4856][0m
+[1mprocess[rviz-4]: started with pid [4857][0m
+[rviz-4] killing on exit
+[alaserMapping-3] killing on exit
+[alaserOdometry-2] killing on exit
+[ascanRegistration-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

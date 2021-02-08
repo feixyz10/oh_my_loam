@@ -85,6 +85,8 @@ class Mapper {
   bool verbose_ = false;
 
   std::unique_ptr<MapperVisualizer> visualizer_{nullptr};
+  TPointCloudPtr cloud_corn_map_{new TPointCloud};
+  TPointCloudPtr cloud_surf_map_{new TPointCloud};
 
   DISALLOW_COPY_AND_ASSIGN(Mapper)
 };
