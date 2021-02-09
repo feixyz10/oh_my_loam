@@ -30,7 +30,10 @@ bool OhMyLoam::Init() {
     AERROR << "Failed to initialize mapper";
     return false;
   }
-  if (is_vis_) visualizer_.reset(new OhmyloamVisualizer);
+  if (is_vis_) {
+    visualizer_.reset(
+        new OhmyloamVisualizer(config_["save_map_path"].as<std::string>()));
+  }
   return true;
 }
 
@@ -60,14 +63,15 @@ void OhMyLoam::Run(double timestamp,
 }
 
 void OhMyLoam::Visualize(const common::Pose3d &pose_curr2map,
-                         const TPointCloudPtr &cloud_corn,
-                         const TPointCloudPtr &cloud_surf, double timestamp) {
+                         const TPointCloudConstPtr &cloud_corn,
+                         const TPointCloudConstPtr &cloud_surf,
+                         double timestamp) {
   std::shared_ptr<OhmyloamVisFrame> frame(new OhmyloamVisFrame);
   frame->timestamp = timestamp;
   frame->cloud_map_corn = mapper_->GetMapCloudCorn();
   frame->cloud_map_surf = mapper_->GetMapCloudSurf();
-  frame->cloud_corn = cloud_corn->makeShared();
-  frame->cloud_surf = cloud_surf->makeShared();
+  frame->cloud_corn = cloud_corn;
+  frame->cloud_surf = cloud_surf;
   frame->pose_map = pose_curr2map;
   visualizer_->Render(frame);
 }

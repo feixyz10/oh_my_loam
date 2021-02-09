@@ -22,8 +22,8 @@ class OhMyLoam {
   void Reset();
 
   void Visualize(const common::Pose3d &pose_curr2map,
-                 const TPointCloudPtr &cloud_corn,
-                 const TPointCloudPtr &cloud_surf, double timestamp = 0.0);
+                 const TPointCloudConstPtr &cloud_corn,
+                 const TPointCloudConstPtr &cloud_surf, double timestamp = 0.0);
 
   // remove outliers: nan or very close points
   void RemoveOutliers(const common::PointCloud &cloud_in,
