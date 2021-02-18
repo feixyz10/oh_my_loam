@@ -25,7 +25,7 @@ void OhmyloamVisualizer::Draw() {
                       cloud_surf_trans.get());
   DrawPointCloud<TPoint>(cloud_surf_trans, "time", "cloud_surf");
   traj_.AddPose(frame.pose_map);
-  AddTrajectory(traj_, PINK, "trajectory", viewer_.get());
+  AddTrajectory(traj_, VIOLET, "trajectory", viewer_.get());
 }
 
 void OhmyloamVisualizer::KeyboardEventCallback(

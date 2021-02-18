@@ -76,6 +76,7 @@ void Odometer::Process(double timestamp, const std::vector<Feature> &features,
 
 void Odometer::MatchCorn(const TPointCloud &src,
                          std::vector<PointLinePair> *const pairs) const {
+  if (kdtree_corn_.getInputCloud()->empty()) return;
   double dist_sq_thresh = config_["corn_match_dist_sq_th"].as<double>();
   for (const auto &pt : src) {
     TPoint query_pt = TransformToStart(pose_curr2last_, pt);
@@ -98,6 +99,7 @@ void Odometer::MatchCorn(const TPointCloud &src,
     for (int i = i_begin; i < i_end; ++i) {
       if (i == pt1_scan_id) continue;
       const auto &kdtree = kdtrees_scan_corn_[i];
+      if (kdtree.getInputCloud()->empty()) continue;
       if (kdtree.nearestKSearch(query_pt, 1, indices, dists) < 1) {
         continue;
       }
@@ -115,6 +117,7 @@ void Odometer::MatchCorn(const TPointCloud &src,
 
 void Odometer::MatchSurf(const TPointCloud &src,
                          std::vector<PointPlanePair> *const pairs) const {
+  if (kdtree_surf_.getInputCloud()->empty()) return;
   double dist_sq_thresh = config_["surf_match_dist_sq_th"].as<double>();
   for (const auto &pt : src) {
     TPoint query_pt = TransformToStart(pose_curr2last_, pt);
@@ -137,6 +140,7 @@ void Odometer::MatchSurf(const TPointCloud &src,
     for (int i = i_begin; i < i_end; ++i) {
       if (i == pt1_scan_id) continue;
       const auto &kdtree = kdtrees_scan_surf_[i];
+      if (kdtree.getInputCloud()->empty()) continue;
       if (kdtree.nearestKSearch(query_pt, 1, indices, dists) < 1) {
         continue;
       }
@@ -149,6 +153,7 @@ void Odometer::MatchSurf(const TPointCloud &src,
     if (!pt2_fount) continue;
 
     const auto &kdtree = kdtrees_scan_surf_[pt1_scan_id];
+    if (kdtree.getInputCloud()->empty()) continue;
     if (kdtree.nearestKSearch(query_pt, 2, indices, dists) < 2) continue;
     if (dists[1] >= dist_sq_thresh) continue;
     TPoint pt3 = kdtree.getInputCloud()->at(indices[1]);
@@ -178,11 +183,15 @@ void Odometer::UpdatePre(const std::vector<Feature> &features) {
     }
     *corn_pre += *scan_corn_pre;
     *surf_pre += *scan_surf_pre;
-    kdtrees_scan_corn_[i].setInputCloud(scan_corn_pre);
-    kdtrees_scan_surf_[i].setInputCloud(scan_surf_pre);
+    if (!scan_corn_pre->empty()) {
+      kdtrees_scan_corn_[i].setInputCloud(scan_corn_pre);
+    }
+    if (!scan_surf_pre->empty()) {
+      kdtrees_scan_surf_[i].setInputCloud(scan_surf_pre);
+    }
   }
-  kdtree_corn_.setInputCloud(corn_pre);
-  kdtree_surf_.setInputCloud(surf_pre);
+  if (!corn_pre->empty()) kdtree_corn_.setInputCloud(corn_pre);
+  if (!surf_pre->empty()) kdtree_surf_.setInputCloud(surf_pre);
 }
 
 void Odometer::Visualize(const std::vector<PointLinePair> &pl_pairs,

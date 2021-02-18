@@ -47,6 +47,7 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr &msg,
   double timestamp = msg->header.stamp.toSec();
   static size_t frame_id = 0;
   AINFO << "Ohmyloam: frame_id = " << ++frame_id
-        << ", timestamp = " << FMT_TIMESTAMP(timestamp);
+        << ", timestamp = " << FMT_TIMESTAMP(timestamp)
+        << ", point_number = " << cloud->size();
   slam->Run(timestamp, cloud);
 }
