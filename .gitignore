@@ -1,8 +1,6 @@
-/.vscode
-/.log
-*.pcd
-/build
 /.clangd
-compile_commands.json
-.clang-tidy
+/.vscode
+/build
 .clang-format
+compile_commands.json
+*.pcd
