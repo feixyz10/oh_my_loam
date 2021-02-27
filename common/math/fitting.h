@@ -74,18 +74,4 @@ Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud,
   return coeffs;
 }
 
-// template <typename PT>
-// Eigen::Vector4d FitPlane(const pcl::PointCloud<PT> &cloud) {
-//   Eigen::MatrixX3f A(cloud.size(), 3);  // NOLINT
-//   Eigen::VectorXf b(cloud.size());
-//   b.setConstant(-1.0);
-//   size_t i = 0;
-//   for (const auto &p : cloud) {
-//     A.row(i++) << p.x, p.y, p.z;
-//   }
-//   Eigen::Vector3f sol = A.colPivHouseholderQr().solve(b);
-//   Eigen::Vector4d coeff(sol(0), sol(1), sol(2), 1.0);
-//   return coeff / sol.norm();
-// }
-
 }  // namespace common
