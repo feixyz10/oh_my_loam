@@ -13,9 +13,7 @@ class Timer {
     Tic();
   }
 
-  void Tic() {
-    start_ = std::chrono::system_clock::now();
-  }
+  void Tic();
 
   // unit: 's' = second, 'm' = millisecond, 'u' = microsecond
   double Toc(char unit = 'm');

@@ -12,18 +12,13 @@
   classname &operator=(const classname &) = delete;
 
 // adapted form baidu apollo cyber/common/macros.h
-#define DECLARE_SINGLETON(classname)                                           \
- public:                                                                       \
-  static classname *Instance() {                                               \
-    static std::unique_ptr<classname> instance{nullptr};                       \
-    if (!instance) {                                                           \
-      static std::once_flag flag;                                              \
-      std::call_once(flag,                                                     \
-                     [&] { instance.reset(new (std::nothrow) classname()); }); \
-    }                                                                          \
-    return instance.get();                                                     \
-  }                                                                            \
-                                                                               \
- private:                                                                      \
-  classname() = default;                                                       \
+#define DECLARE_SINGLETON(classname) \
+ public:                             \
+  static classname *Instance() {     \
+    static classname instance;       \
+    return &instance;                \
+  }                                  \
+                                     \
+ private:                            \
+  classname() = default;             \
   DISALLOW_COPY_AND_ASSIGN(classname)

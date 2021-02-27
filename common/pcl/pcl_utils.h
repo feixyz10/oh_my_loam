@@ -62,7 +62,6 @@ template <typename PT>
 inline void TransformPointCloud(const Pose3d &pose,
                                 const pcl::PointCloud<PT> &cloud_in,
                                 pcl::PointCloud<PT> *const cloud_out) {
-  ACHECK(cloud_out);
   pcl::transformPointCloud(cloud_in, *cloud_out, pose.TransMat().cast<float>());
 }
 
@@ -78,7 +77,7 @@ void RemovePoints(const pcl::PointCloud<PT> &cloud_in,
   }
   size_t j = 0;
   for (size_t i = 0; i < cloud_in.size(); ++i) {
-    const auto pt = cloud_in.points[i];
+    const auto &pt = cloud_in.points[i];
     if (check(pt)) {
       if (removed_indices) removed_indices->push_back(i);
       continue;

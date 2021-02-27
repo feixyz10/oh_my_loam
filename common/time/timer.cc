@@ -4,6 +4,10 @@
 
 namespace common {
 
+void Timer::Tic() {
+  start_ = std::chrono::system_clock::now();
+}
+
 double Timer::Toc(char unit) {
   ACHECK(unit == 's' || unit == 'm' || unit == 'u')
       << "Only 's'(second), 'm'(millisecond) and 'u'(microsecond) are "
