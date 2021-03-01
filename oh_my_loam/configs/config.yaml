@@ -1,5 +1,5 @@
 # global configs
-lidar: VPL16
+lidar: VLP16
 log_to_file: false
 log_path: /data/log/oh_my_loam
 vis: true

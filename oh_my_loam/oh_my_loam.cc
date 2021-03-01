@@ -2,9 +2,8 @@
 
 #include <vector>
 
-#include "common/common.h"
 #include "common/pcl/pcl_utils.h"
-#include "oh_my_loam/extractor/extractor_VLP16.h"
+#include "common/registerer/registerer.h"
 
 namespace oh_my_loam {
 
@@ -15,7 +14,8 @@ const double kPointMinDist = 0.5;
 bool OhMyLoam::Init() {
   config_ = common::YAMLConfig::Instance()->config();
   is_vis_ = config_["vis"].as<bool>();
-  extractor_.reset(new ExtractorVLP16);
+  extractor_.reset(common::Registerer<Extractor>::NewInstance(
+      "Extractor" + config_["lidar"].as<std::string>()));
   if (!extractor_->Init()) {
     AERROR << "Failed to initialize extractor";
     return false;
