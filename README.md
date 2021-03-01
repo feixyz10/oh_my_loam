@@ -4,6 +4,7 @@ Oh-My-LOAM is a ROS-free implementation of LOAM (J. Zhang and S. Singh. LOAM: Li
 
 Comparing with A-LOAM, this implementation has following features:
 
+- it's ROS-free
 - it's more readable and easier to understand/modify
 
 # Dependences
