@@ -8,12 +8,12 @@ Comparing with A-LOAM, this implementation has following features:
 - it's ROS-free
 - it's more readable and easier to understand/modify
 
-<img src="images/nsh_indoor_outdoor.png" alt="" height="500" align="bottom" />
+<img src="images/nsh_indoor_outdoor.png" alt="nsh_indoor_outdoor" height="500" align="bottom" />
 
 # How to run
 ## BUILD
 
-Install dependences (lsted below).\
+Install dependences (listed below).\
 Clone this repository\
 Compile: 
 ```bash
@@ -41,26 +41,26 @@ You can write by yourself.
 
 # Dependences
 
-### 1. C++17
-### 2. Eigen: linear algebra, quaternion
+### C++17
+### Eigen: linear algebra, quaternion
 ```
 sudo apt install libeigen3-dev
 ```
 
-### 3. pcl: point cloud processing
+### pcl: point cloud processing
 ```
 sudo apt install libpcl-dev
 ```
 
-### 4. g3log: logging
+### g3log: logging
 Follow [g3log](https://github.com/KjellKod/g3log) to install.
 
-### 5. yaml-cpp: yaml parsing
+### yaml-cpp: yaml parsing
 ```
 sudo apt install libyaml-cpp-dev
 ```
 
-### 6. ceres: non-linear optimization
+### ceres: non-linear optimization
 ```
 sudo apt install libceres-dev
 ```
