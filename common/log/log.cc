@@ -68,7 +68,7 @@ std::string CustomSink::GetColorCode(const LEVELS &level) const {
     return "\033[1m\033[34m";  // bold blue
   }
   if (g3::internal::wasFatal(level)) {
-    return "\033[1m\033[31m";  // red
+    return "\033[1m\033[31m";  // bold red
   }
   return "\033[97m";  // white
 }

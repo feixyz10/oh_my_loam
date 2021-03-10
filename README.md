@@ -27,17 +27,32 @@ Although **Oh-My-LOAM** is ROS-free, running it with ROS bag as input is the sim
 We'll take *nsh_indoor_outdoor.bag* as example. 
 You can download this bag from [google drive](https://drive.google.com/file/d/1s05tBQOLNEDDurlg48KiUWxCp-YqYyGH/view) or [baidupan](https://pan.baidu.com/s/1TbfMQ3Rvmmn1hCjFhXSPcQ) (提取码:9nf7).
 
-Launch: 
+Launch **Oh-My-LOAM**: 
 ```
 ./devel/lib/oh_my_loam/main_rosbag ../configs/config_nsh_indoor_outdoor.yaml
 ```
-Play bag:
+Play ROS bag (in a new terminal):
 ```
 ros play nsh_indoor_outdoor.bag
 ```
 
 ## Run without ROS support
-You can write by yourself.
+Launch **Oh-My-LOAM**:
+```
+./devel/lib/oh_my_loam/main_noros ../configs/config_nsh_indoor_outdoor.yaml xxxxxx
+```
+Please replace `xxxxxx` with the directory that contains the input point cloud files with tree structure like following: 
+```
+xxxxxx
+├── frame00000.pcd               
+├── frame00001.pcd               
+├── frame00002.pcd               
+├── frame00003.pcd               
+├── frame00004.pcd
+├── ...          
+```
+Currently only `.pcd` format is supported. 
+You can modify `examples/main_noros.cc` to add support for other point cloud formats.  
 
 # Dependences
 

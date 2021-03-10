@@ -20,5 +20,5 @@
   }                                  \
                                      \
  private:                            \
-  classname() = default;             \
+  classname();                       \
   DISALLOW_COPY_AND_ASSIGN(classname)

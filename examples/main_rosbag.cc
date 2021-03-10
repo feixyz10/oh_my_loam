@@ -16,13 +16,18 @@ void PointCloudHandler(const sensor_msgs::PointCloud2ConstPtr &msg,
                        OhMyLoam *const slam);
 
 int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    std::cerr << "\033[1m\033[31mConfiguration file should be specified!\033[m"
+              << std::endl;
+    return -1;
+  }
   // config
   YAMLConfig::Instance()->Init(argv[1]);
-  bool log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
+  bool is_log_to_file = YAMLConfig::Instance()->Get<bool>("log_to_file");
   std::string log_path = YAMLConfig::Instance()->Get<std::string>("log_path");
   std::string lidar = YAMLConfig::Instance()->Get<std::string>("lidar");
   // logging
-  InitG3Logging(log_to_file, "oh_my_loam_" + lidar, log_path);
+  InitG3Logging(is_log_to_file, "oh_my_loam_" + lidar, log_path);
   AUSER << "LOAM start..., lidar = " << lidar;
   // SLAM system
   OhMyLoam slam;

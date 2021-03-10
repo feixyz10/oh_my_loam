@@ -11,10 +11,7 @@ namespace common {
 
 class YAMLConfig {
  public:
-  void Init(const std::string &file) {
-    config_.reset(new YAML::Node);
-    *config_ = YAML::LoadFile(file);
-  }
+  void Init(const std::string &file);
 
   template <typename T>
   const T Get(const std::string &key) const {
