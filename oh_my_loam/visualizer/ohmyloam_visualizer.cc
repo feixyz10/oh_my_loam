@@ -44,6 +44,7 @@ void OhmyloamVisualizer::KeyboardEventCallback(
     }
     is_updated_ = true;
   } else if (event.getKeySym() == "s" && event.keyDown()) {
+    if (save_path_.empty()) return;
     auto frame = GetCurrentFrame<OhmyloamVisFrame>();
     PointCloud cloud;
     cloud.reserve(frame.cloud_map_surf->size() + frame.cloud_map_surf->size());

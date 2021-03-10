@@ -4,10 +4,10 @@
   <version>0.0.0</version>
 
   <description>
-    Reimplementation of LOAM.
+    A ROS-free implementation of LOAM.
   </description>
 
-  <maintainer email="fei-china@139.com">qintong</maintainer>
+  <maintainer email="fei-china@139.com">feixyz</maintainer>
 
   <license>BSD</license>
 

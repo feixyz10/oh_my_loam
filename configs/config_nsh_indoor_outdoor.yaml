@@ -3,7 +3,6 @@ lidar: VLP16
 log_to_file: false
 log_path: /data/log/oh_my_loam
 vis: true
-save_map: true
 save_map_path: /data/log/oh_my_loam.pcd
 
 # configs for extractor
