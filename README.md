@@ -5,8 +5,9 @@ This implementation is modified from [A-LOAM](https://github.com/HKUST-Aerial-Ro
 
 Comparing with A-LOAM, this implementation has following features:
 
-- it's ROS-free
-- it's more readable and easier to understand/modify
+- ROS-free: it can run without ROS environment
+- Multi-threading instead of multi-process: more deterministic
+- Higher code quality: more readable and easier to understand/modify
 
 <img src="images/nsh_indoor_outdoor.png" alt="nsh_indoor_outdoor" height="500" align="bottom" />
 
@@ -56,7 +57,16 @@ You can modify `examples/main_noros.cc` to add support for other point cloud for
 
 # Dependences
 
+### OS
+Tested on ubuntu 16.04/18.04/20.04.
+
 ### C++17
+If cannot find *std::filesystem* error is encountered during your compiling, please upgrade your compiler. 
+We recommend `g++-9` (or higher version).
+
+### ROS
+Only `examples/main_rosbag.cc` needs ROS. You can exclude it from compiling by modifying `examples/CMakeLists.txt`.
+
 ### Eigen: linear algebra, quaternion
 ```
 sudo apt install libeigen3-dev
@@ -79,5 +89,3 @@ sudo apt install libyaml-cpp-dev
 ```
 sudo apt install libceres-dev
 ```
-
-### ROS (optional)
