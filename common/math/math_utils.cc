@@ -19,11 +19,15 @@ double Rad2Degree(double rad) {
 
 const std::vector<int> Range(int begin, int end, int step) {
   ACHECK(step != 0) << "Step must be non-zero";
-  int num = (end - begin) / step;
+  int sign = step < 0 ? -1 : 1;
+  int num = (end - begin - sign) / step + 1;
   if (num <= 0) return {};
-  end = begin + step * num;
   std::vector<int> seq(num);
-  for (int i = begin; i != end; i += step) seq[i] = i;
+  int b = begin;
+  for (int i = 0; i != num; ++i) {
+    seq[i] = b;
+    b += step;
+  }
   return seq;
 }
 
