@@ -1,0 +1,11 @@
+---
+BasedOnStyle: Google
+---
+Language: Cpp
+DerivePointerAlignment: false
+PointerAlignment: Right
+BreakBeforeBraces: Attach
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: true
+Cpp11BracedListStyle: true
+Standard: Cpp11
