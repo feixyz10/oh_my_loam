@@ -11,6 +11,8 @@ Comparing with A-LOAM, this implementation has following features:
 
 <img src="images/nsh_indoor_outdoor.png" alt="nsh_indoor_outdoor" height="500" align="bottom" />
 
+NOTE: This project is licensed under the terms of the MIT license.
+
 # How to run
 ## BUILD
 
